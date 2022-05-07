@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>网络拓扑图</title>
+    <script type="text/javascript" src="js/echarts.min.js"></script>
+  </head>
+
+  <body>
+    <div id="chart" style="height: 500px; width: 100%"></div>
+    <script>
+      var nodes = [
+        {
+          x: "0",
+          y: "10",
+          name: "投资规划用途变更",
+          img: "cc.png",
+        },
+        {
+          x: "0",
+          y: "6",
+          name: "重点行业企业详查",
+          img: "cc.png",
+        },
+        {
+          x: "0",
+          y: "2",
+          name: "排污许可证注销",
+          img: "cc.png",
+        },
+        {
+          x: "3",
+          y: "6",
+          name: "重点关注地块",
+          img: "fwq.png",
+          //alarm: "产生告警了哦",
+        },
+        {
+          x: "6",
+          y: "10",
+          name: "初步调查",
+          img: "fhq.png",
+        },
+		{
+          x: "6",
+          y: "8",
+          name: "详细调查",
+          img: "fhq.png",
+        },
+		{
+          x: "6",
+          y: "6",
+          name: "风险评估",
+          img: "fhq.png",
+        },
+		{
+          x: "6",
+          y: "4",
+          name: "风险管控与修复方案编制",
+          img: "fhq.png",
+        },
+		{
+          x: "9",
+          y: "4",
+          name: "风险可接受",
+          img: "fhq.png",
+        },
+		{
+          x: "6",
+          y: "2",
+          name: "风险管控与修复效果评估",
+          img: "fhq.png",
+        },
+		{
+          x: "9",
+          y: "2",
+          name: "风险已修复",
+          img: "fhq.png",
+        },
+        {
+          x: "9",
+          y: "10",
+          name: "无超标可旋转",
+          img: "wlsb.png",
+          //alarm: "产生告警了哦",
+        },
+        {
+          x: "12",
+          y: "6",
+          name: "可安全利用",
+          img: "wlsb.png",
+        },
+      ];
+      var links = [
+        {
+          source: "投资规划用途变更",
+          target: "重点关注地块",
+        },
+        {
+          source: "排污许可证注销",
+          target: "重点关注地块",
+        },
+        {
+          source: "重点行业企业详查",
+          target: "重点关注地块",
+        },
+        {
+          source: "重点关注地块",
+          target: "初步调查",
+        },
+		{
+          source: "重点关注地块",
+          target: "详细调查",
+        },
+		{
+          source: "重点关注地块",
+          target: "风险评估",
+        },
+		{
+          source: "重点关注地块",
+          target: "风险管控与修复方案编制",
+        },
+		{
+          source: "重点关注地块",
+          target: "风险管控与修复效果评估",
+        },
+        {
+          source: "初步调查",
+          target: "无超标可旋转",
+        },
+        {
+          source: "无超标可旋转",
+          target: "可安全利用",
+        },
+		{
+          source: "风险管控与修复方案编制",
+          target: "风险可接受",
+        },
+		{
+          source: "风险可接受",
+          target: "可安全利用",
+        },
+		{
+          source: "风险管控与修复效果评估",
+          target: "风险已修复",
+        },
+		{
+          source: "风险已修复",
+          target: "可安全利用",
+        },
+		{
+          source: "初步调查",
+          target: "详细调查",
+        },
+		{
+          source: "详细调查",
+          target: "风险评估",
+        },
+		{
+          source: "风险评估",
+          target: "风险管控与修复方案编制",
+        },
+		{
+          source: "风险管控与修复方案编制",
+          target: "风险管控与修复效果评估",
+        },
+      ];
+      var charts = {
+        nodes: [],
+        links: [],
+        linesData: [],
+      };
+      var dataMap = new Map();
+      for (var j = 0; j < nodes.length; j++) {
+        var x = parseInt(nodes[j].x);
+        var y = parseInt(nodes[j].y);
+        var node = {
+          name: nodes[j].name,
+          value: [x, y],
+          symbolSize: 50,
+          alarm: nodes[j].alarm,
+          symbol: "image://images/" + nodes[j].img,
+          itemStyle: {
+            normal: {
+              color: "#12b5d0",
+            },
+          },
+        };
+        dataMap.set(nodes[j].name, [x, y]);
+        charts.nodes.push(node);
+      }
+      for (var i = 0; i < links.length; i++) {
+        var link = {
+          source: links[i].source,
+          target: links[i].target,
+          label: {
+            normal: {
+              show: false,
+              formatter: links[i].name,
+            },
+          },
+          lineStyle: {
+            normal: {
+              color: "#00FFFF",
+            },
+          },
+        };
+        charts.links.push(link);
+        // 组装动态移动的效果数据
+        var lines = [
+          {
+            coord: dataMap.get(links[i].source),
+          },
+          {
+            coord: dataMap.get(links[i].target),
+          },
+        ];
+        charts.linesData.push(lines);
+      }
+      option = {
+        title: {
+          text: "网络拓扑图",
+          textStyle: {
+            fontWeight: "normal",
+            color: "#00FFFF",
+          },
+        },
+        backgroundColor: "#1b2735",
+        xAxis: {
+          show: false,
+          type: "value",
+        },
+        yAxis: {
+          show: false,
+          type: "value",
+        },
+        series: [
+          {
+            type: "graph",
+            layout: "none",
+            coordinateSystem: "cartesian2d",
+            symbolSize: 50,
+            label: {
+              normal: {
+                show: true,
+                position: "bottom",
+                color: "#00FFFF",
+              },
+            },
+            lineStyle: {
+              normal: {
+                width: 2,
+                shadowColor: "none",
+              },
+            },
+            edgeSymbolSize: 8,
+            data: charts.nodes,
+            links: charts.links,
+            itemStyle: {
+              normal: {
+                label: {
+                  show: true,
+                  formatter: function (item) {
+                    return item.data.name;
+                  },
+                },
+              },
+            },
+          },
+          {
+            name: "A",
+            type: "lines",
+            coordinateSystem: "cartesian2d",
+            effect: {
+              show: true,
+              trailLength: 0,
+              symbol: "arrow",
+              color: "#00FFFF",
+              symbolSize: 8,
+            },
+            data: charts.linesData,
+          },
+        ],
+      };
+      // 用于告警的动态效果
+      setInterval(() => {
+        var dataI = [];
+        for (var n = 0; n < nodes.length; n++) {
+          var alarm = nodes[n].alarm;
+          if (alarm !== null && alarm !== "" && alarm !== undefined) {
+            option.series[0].data[n].symbolSize = 60;
+            option.series[0].data[n].label = {
+              normal: {
+                color: "#DC143C",
+              },
+            };
+            option.series[0].itemStyle.normal.label.formatter = function (
+              item
+            ) {
+              if (item.data.alarm !== undefined) {
+                return item.data.name + "\n[ " + item.data.alarm + " ]";
+              } else {
+                return item.data.name;
+              }
+            };
+            dataI.push(n);
+          }
+        }
+        var dom = document.getElementById("chart");
+        var myChart = echarts.init(dom);
+        myChart.setOption(option);
+        window.onresize = myChart.resize;
+        setTimeout(() => {
+          for (var m = 0; m < dataI.length; m++) {
+            option.series[0].data[dataI[m]].symbolSize = 50;
+            option.series[0].data[dataI[m]].label = {
+              normal: {
+                color: "#00FFFF",
+              },
+            };
+            option.series[0].itemStyle.normal.label.formatter = function (
+              item
+            ) {
+              return item.data.name;
+            };
+          }
+          myChart.setOption(option);
+        }, 500);
+      }, 1000);
+    </script>
+  </body>
+</html>

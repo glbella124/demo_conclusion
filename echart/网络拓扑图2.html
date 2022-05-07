@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>网络拓扑图2</title>
+		<script type="text/javascript" src="js/echarts.min.js"></script>
+	</head>
+
+	<body>
+		<div id="chart" style="height: 500px;width: 100%;">
+
+		</div>
+		<script>
+			/*右侧服务器数据*/
+			var nodesM = [
+				{
+					name: '服务器',
+					img: 'fwq.png'
+				},{
+					name: '服务器1',
+					img: 'fwq.png'
+				},{
+					name: '服务器2',
+					img: 'fwq.png'
+				}
+			];
+			var nodes = [
+				{
+					name: '存储设备1',
+					img: 'cc.png',
+					state:'1'
+				},
+				{
+					name: '存储设备2',
+					img: 'cc.png',
+					state:'1'
+				},
+				{
+					name: '防火墙',
+					img: 'fhq.png',
+					state:'0'
+				},
+				{
+					name: '网络设备1',
+					img: 'wlsb.png',
+					state:'1'
+				},
+				{
+					name: '网络设备2',
+					img: 'wlsb.png',
+					state:'0'
+				}
+			];
+			var links = [{
+					source: '存储设备2',
+					target: '服务器1',
+					state:'1'
+				}, {
+					source: '存储设备1',
+					target: '服务器',
+					state:'1'
+				},
+				{
+					source: '防火墙',
+					target: '服务器',
+					state:'0'
+				},
+				{
+					source: '网络设备1',
+					target: '服务器',
+					state:'1'
+				},
+				{
+					source: '网络设备2',
+					target: '服务器',
+					state:'0'
+				}
+			];
+
+			var charts = {
+				nodes: [],
+				links: [],
+				linesData: []
+			};
+			var x = 1;
+			var y = 1;
+			var dataMap = new Map();
+			for(var j = 0; j < nodes.length; j++) {
+				var node = {
+					name: nodes[j].name,
+					value: [x, y],
+					symbolSize: 50,
+					symbol: 'image://images/' + nodes[j].img,
+					itemStyle: {
+						normal: {
+							color: '#12b5d0',
+						}
+					}
+				};
+				dataMap.set(nodes[j].name, [x, y]);
+				charts.nodes.push(node);
+				y+=2;
+			}
+			//右侧数据显示
+			for (var k = 0; k < nodesM.length; k++){
+				var node = {
+					name: nodesM[k].name,
+					value: [x+4, y/nodesM.length+k*2],
+					symbolSize: 60,
+					symbol: 'image://images/'+nodesM[k].img,
+					itemStyle: {
+						normal: {
+							color: '#12b5d0',
+						}
+					}
+				};
+				dataMap.set(nodesM[k].name, [x+4, y/nodesM.length+k*2]);
+				charts.nodes.push(node)
+			}
+
+			for(var i = 0; i < links.length; i++) {
+				//通过传输状态state 显示传输文字提示
+				if (links[i].state === 1){
+					links[i].name = '数据传输中'
+				} else{
+					links[i].name = '暂停传输中'
+				}
+				var link = {
+					source: links[i].source,
+					target: links[i].target,
+					// target: nodesM[0].name,
+					label: {
+						normal: {
+							show: true,
+							formatter: links[i].name
+						}
+					},
+					lineStyle: {
+						normal: {
+							color: '#d1d1d1'
+						}
+					}
+				};
+				charts.links.push(link);
+
+				//判断传输状态1 传输动效改变线条颜色
+				if(links[i].state === '1'){
+					link.lineStyle.normal.color='#0fff17';
+					var lines = [{
+						coord: dataMap.get(links[i].source)
+					}, {
+						coord: dataMap.get(links[i].target)
+					}];
+					charts.linesData.push(lines)
+				}
+			}
+
+			option = {
+				title: {
+					text: '网络拓扑图',
+					textStyle: {
+						fontWeight: 'normal',
+						color: "#FFF"
+					}
+				},
+				backgroundColor: "#1b2735",
+				xAxis: {
+					show: false,
+					type: 'value'
+				},
+				yAxis: {
+					show: false,
+					type: 'value'
+				},
+				series: [{
+					type: 'graph',
+					layout: 'none',
+					coordinateSystem: 'cartesian2d',
+					symbolSize: 50,
+					label: {
+						normal: {
+							show: true,
+							position: 'bottom',
+							color: '#FFF'
+						}
+					},
+					lineStyle: {
+						normal: {
+							width: 2,
+							shadowColor: 'none',
+							curveness:'0.06'
+						}
+
+					},
+					edgeSymbolSize: 8,
+					data: charts.nodes,
+					links: charts.links,
+					itemStyle: {
+						normal: {
+							label: {
+								show: true,
+								formatter: function(item) {
+									return item.data.name
+								}
+							}
+						}
+					}
+				}, {
+					name: 'A',
+					type: 'lines',
+					coordinateSystem: 'cartesian2d',
+					effect: {
+						show: true,
+						trailLength: 0,
+						symbol: 'arrow',
+						color: '#0fff17',
+						symbolSize: 8
+					},
+					lineStyle:{
+//						箭头曲线 curveness (0-1)
+							curveness:'0.01'
+//						}
+					},
+					data: charts.linesData
+				}]
+			};
+
+			var dom = document.getElementById("chart");
+			var myChart = echarts.init(dom);
+			myChart.setOption(option);
+			window.onresize = myChart.resize;
+		</script>
+	</body>
+
+</html>
