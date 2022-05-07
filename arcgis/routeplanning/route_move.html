@@ -1,0 +1,454 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <!--
+     ArcGIS API for JavaScript, https://js.arcgis.com
+     For more information about the tasks-route sample,
+     read the original sample description at developers.arcgis.com.
+     https://developers.arcgis.com/javascript/latest/sample-code/tasks-route/index.html
+     -->
+     <!-- 路径规划 - 路径移动特效 -->
+    <title>路径规划 4.16</title>
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+
+      #paneDiv {
+        position: absolute;
+        top: 10px;
+        left: 62px;
+        padding: 0 12px 0 12px;
+        background-color: rgba(0, 0, 0, 0.5);
+        color: white;
+      }
+    </style>
+
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.16/esri/themes/light/main.css"
+    />
+    <script src="https://js.arcgis.com/4.16/"></script>
+
+    <script>
+      require([
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/Graphic",
+        "esri/layers/GraphicsLayer",
+        "esri/tasks/RouteTask",
+        "esri/tasks/support/RouteParameters",
+        "esri/tasks/support/FeatureSet",
+        "esri/geometry/Point",
+        "esri/layers/FeatureLayer",
+        "esri/symbols/PictureMarkerSymbol",
+        "esri/symbols/CIMSymbol",
+      ], function (
+        Map,
+        MapView,
+        Graphic,
+        GraphicsLayer,
+        RouteTask,
+        RouteParameters,
+        FeatureSet,
+        Point,
+        FeatureLayer,
+        PictureMarkerSymbol,
+        CIMSymbol
+      ) {
+        // Point the URL to a valid route service that uses an
+        // ArcGIS Online hosted service proxy
+        // let routeTask = new RouteTask({
+        //   url:
+        //     "https://route-api.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World"
+        // });
+
+        let routeTask = new RouteTask({
+          url: "http://119.3.104.235:6080/arcgis/rest/services/soil/route84/NAServer/Route",
+        });
+
+        // The stops and route result will be stored in this layer
+        let routeLayer = new GraphicsLayer();
+
+        // Setup the route parameters
+        let routeParams = new RouteParameters({
+          stops: new FeatureSet(),
+          outSpatialReference: {
+            // autocasts as new SpatialReference()
+            wkid: 3857, //102100
+          },
+        });
+
+        // Define the symbology used to display the stops
+        let stopSymbol = {
+          type: "simple-marker", // autocasts as new SimpleMarkerSymbol()
+          style: "cross",
+          size: 15,
+          outline: {
+            // autocasts as new SimpleLineSymbol()
+            width: 4,
+          },
+        };
+
+        // Define the symbology used to display the route
+        let routeSymbol = {
+          type: "simple-line", // autocasts as SimpleLineSymbol()
+          color: [255, 165, 0, 1],
+          width: 3,
+        };
+
+        //小车运动特效
+
+        //初始化路线符号
+        let lineSymbol = {
+          type: "cim",
+          data: {
+            type: "CIMSymbolReference",
+            symbol: {
+              type: "CIMLineSymbol",
+              symbolLayers: [
+                {
+                  //箭头符号
+                  type: "CIMVectorMarker",
+                  enable: true,
+                  size: 4,
+                  markerPlacement: {
+                    type: "CIMMarkerPlacementAlongLineSameSize",
+                    endings: "WithMarkers",
+                    placementTemplate: [100], //箭头距离
+                  },
+                  frame: {
+                    xmin: -5,
+                    ymin: -5,
+                    xmax: 5,
+                    ymax: 5,
+                  },
+                  //箭头图形
+                  markerGraphics: [
+                    {
+                      type: "CIMMarkerGraphic",
+                      geometry: {
+                        rings: [
+                          [
+                            [-8, -5.47],
+                            [-8, 5.6],
+                            [1.96, -0.03],
+                            [-8, -5.47],
+                          ],
+                        ],
+                      },
+                      symbol: {
+                        //箭头的颜色填充
+                        type: "CIMPolygonSymbol",
+                        symbolLayers: [
+                          {
+                            type: "CIMSolidFill",
+                            enable: true,
+                            color: [238, 238, 238, 255],
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+                {
+                  //线符号
+                  type: "CIMSolidStroke",
+                  enable: true,
+                  width: 3,
+                  color: [103, 165, 245, 255],
+                },
+              ],
+            },
+          },
+        };
+
+        //已行驶的路线符号
+        let lineSymboled = {
+          type: "cim",
+          data: {
+            type: "CIMSymbolReference",
+            symbol: {
+              type: "CIMLineSymbol",
+              symbolLayers: [
+                {
+                  //箭头符号
+                  type: "CIMVectorMarker",
+                  enable: true,
+                  size: 4,
+                  markerPlacement: {
+                    type: "CIMMarkerPlacementAlongLineSameSize",
+                    endings: "WithMarkers",
+                    placementTemplate: [100], //箭头距离
+                  },
+                  frame: {
+                    xmin: -5,
+                    ymin: -5,
+                    xmax: 5,
+                    ymax: 5,
+                  },
+                  //箭头图形
+                  markerGraphics: [
+                    {
+                      type: "CIMMarkerGraphic",
+                      geometry: {
+                        rings: [
+                          [
+                            [-8, -5.47],
+                            [-8, 5.6],
+                            [1.96, -0.03],
+                            [-8, -5.47],
+                          ],
+                        ],
+                      },
+                      symbol: {
+                        //箭头的颜色填充
+                        type: "CIMPolygonSymbol",
+                        symbolLayers: [
+                          {
+                            type: "CIMSolidFill",
+                            enable: true,
+                            color: [238, 238, 238, 255],
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+                {
+                  //线符号
+                  type: "CIMSolidStroke",
+                  enable: true,
+                  width: 3,
+                  color: [254, 166, 0, 255],
+                },
+              ],
+            },
+          },
+        };
+
+        let map = new Map({
+          basemap: "streets",
+          layers: [routeLayer], // Add the route layer to the map
+          //spatialReference: SpatialReference.WebMercator
+        });
+
+        //已跑过的路线图层
+        let routeLayed = new GraphicsLayer({
+          id: "routeLay",
+        });
+        map.add(routeLayed);
+
+        let moveLayer = new GraphicsLayer({
+          id: "moveLayer",
+        });
+
+        map.add(moveLayer);
+
+        let view = new MapView({
+          container: "viewDiv", // Reference to the scene div created in step 5
+          map: map, // Reference to the map object created before the scene
+          center: [121.5, 31.2],
+          zoom: 10,
+        });
+
+        addStop(121.46606405273438, 31.130596636121965, routeLayer, moveLayer,routeLayed);
+        addStop(121.6212459375, 31.00237795519903, routeLayer, moveLayer,routeLayed);
+        addStop(121.51412923828126, 30.910519131723234, routeLayer,moveLayer,routeLayed);
+
+        function addStop(longitude, latitude, route, move,routeLay) {
+          // Add a point at the location of the map click
+          let stop = new Graphic({
+            geometry: new Point({
+              longitude: longitude,
+              latitude: latitude,
+              // x: x, //3107.56 ,
+              // y: y, //196,
+              // spatialReference: SpatialReference.WebMercator, // 自定义坐标一定要定义坐标系，和view相同
+            }),
+            symbol: stopSymbol,
+          });
+          //routeLayer.add(stop);
+          route.add(stop);
+
+          // Execute the route task if 2 or more stops are input
+          routeParams.stops.features.push(stop);
+          if (routeParams.stops.features.length >= 2) {
+            routeTask.solve(routeParams).then((data) => {
+              debugger;
+              let routeResult = data.routeResults[0].route;
+              //console.log(JSON.stringify(routeResult.geometry.paths[0]));
+              //let trackPath = routeResult.geometry.paths[0];
+              //console.log(trackPath[0]);
+              let trackPath = [
+                 [121.46606405273438, 31.130596636121965],
+                 [121.6212459375, 31.00237795519903],
+                 [121.51412923828126, 30.910519131723234],
+                ]
+              routeResult.symbol = routeSymbol;
+              route.add(routeResult);
+
+              const polyline = {
+                type: "polyline",
+                paths: trackPath, //[
+                // [121.46606405273438, 31.130596636121965],
+                // [121.6212459375, 31.00237795519903],
+                // [121.51412923828126, 30.910519131723234],
+                //],
+              };
+
+              route.add(
+                new Graphic({
+                  geometry: polyline,
+                  symbol: lineSymbol,
+                })
+              )
+
+              //创建起点
+              //创建起点
+              let startP = {
+                type: "point",
+                longitude: trackPath[0][0], //121.46606405273438,
+                latitude: trackPath[0][1], //31.130596636121965,
+              };
+
+              let startS = {
+                type: "picture-marker",
+                url: "http://47.110.79.226:8384/img/fj.png",
+                //url:'./car.png',
+                width: "32px",
+                height: "32px",
+              };
+
+              let moveGra = new Graphic({
+                geometry: startP,
+                symbol: startS,
+              });
+
+              console.log(move);
+              
+              move.add(moveGra);
+
+              let startNum, endNum, moving;
+
+              function moveFunc(start, end) {
+              let x1 = polyline.paths[start][0];
+              let y1 = polyline.paths[start][1];
+              let x2 = polyline.paths[end][0];
+              let y2 = polyline.paths[end][1];
+              //斜率
+              let p = (y2 - y1) / (x2 - x1);
+              //速度
+              let v = 0.001;
+              moving = setInterval(function () {
+                startNum = start;
+                endNum = end;
+                //分别计算 x,y轴的方向和速度
+                if (Math.abs(p) == Number.POSITIVE_INFINITY) {
+                  //垂直的时候斜率无穷大
+                  moveGra.geometry.y += v;
+                } else {
+                  if (x2 < x1) {
+                    moveGra.geometry.x -= (1 / Math.sqrt(1 + p * p)) * v;
+                    moveGra.geometry.y -= (p / Math.sqrt(1 + p * p)) * v;
+                    //计算角度
+                    moveGra.symbol.angle = calcAngle(x1, y1, x2, y2); //(Math.PI / 2 - Math.atan(p)) * 180 / Math.PI+180
+                  } else {
+                    moveGra.geometry.x += (1 / Math.sqrt(1 + p * p)) * v;
+                    moveGra.geometry.y += (p / Math.sqrt(1 + p * p)) * v;
+                    //计算角度
+                    moveGra.symbol.angle = calcAngle(x1, y1, x2, y2);
+                  }
+                }
+                //重新绘制
+                move.add(moveGra);
+                //画线
+                if (start == 0) {
+                  addLineSYmboled(0);
+                } else {
+                  addLineSYmboled(end);
+                }
+                if (
+                  Math.abs(moveGra.geometry.x - x2) <= v &&
+                  Math.abs(moveGra.geometry.y - y2) <= v
+                ) {
+                  clearInterval(moving);
+                  startNum = start++;
+                  endNum = end++;
+                  if (end < polyline.paths.length) {
+                    moveFunc(start, end);
+                  }
+                }
+              }, 50);
+            }
+
+            function calcAngle(x1, y1, x2, y2) {
+              let tan =
+                (Math.atan(Math.abs((y2 - y1) / (x2 - x1))) * 180) / Math.PI +
+                90;
+              if (x2 > x1 && y2 > y1) {
+                return -tan + 180;
+              } else if (x2 > x1 && y2 < y1) {
+                return tan;
+              } else if (x2 < x1 && y2 > y1) {
+                return tan - 180;
+              } else {
+                return -tan;
+              }
+            }
+
+            function addLineSYmboled(end) {
+              routeLay.removeAll();
+              let path = null;
+              if (end == 0) {
+                path = polyline.paths.slice(0, 1);
+              } else {
+                path = polyline.paths.slice(0, end);
+              }
+              path.push([moveGra.geometry.x, moveGra.geometry.y]);
+              let polylined = {
+                type: "polyline",
+                paths: path,
+                // spatialReference: view.spatialReference
+              };
+              routeLay.add(
+                new Graphic({
+                  geometry: polylined,
+                  symbol: lineSymboled,
+                })
+              );
+            }
+
+            moveGra.geometry = startP;
+            moveFunc(0, 1);
+
+            });
+   
+          }
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <div id="viewDiv"></div>
+    <div id="paneDiv" class="esri-widget">
+      <div>
+        <p>
+          Click on the map to add stops to the route. The route from the last
+          stop to the newly added stop is calculated. If a stop is not
+          reachable, it is removed and the last valid point is set as the
+          starting point.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

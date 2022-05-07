@@ -1,0 +1,336 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>应急响应事件</title>
+
+    <style>
+      html,
+      body,
+      #map {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+      .mytitle {
+        z-index: 1000;
+        color: #fff;
+        font-size: 16px;
+        text-align: center;
+        position: absolute;
+        top: 10px;
+        left: 40%;
+        width: 20%;
+      }
+    </style>
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.11/esri/themes/light/main.css"
+    />
+    <script src="echarts.min.js"></script>
+    <script src="echarts-gl.js"></script>
+    <script>
+      var dojoConfig = {
+        parseOnLoad: true,
+        packages: [
+          {
+            name: "src",
+            location: location.pathname.replace(/\/[^/]+$/, "") + "/src",
+          },
+        ],
+      };
+    </script>
+    <script src="https://js.arcgis.com/4.11/"></script>
+    <script>
+      var map;
+
+      require([
+        "esri/Map",
+        "esri/Basemap",
+        "esri/layers/TileLayer",
+        "src/echartsLayer",
+        "esri/views/SceneView",
+        "dojo/domReady!",
+        "esri/geometry/SpatialReference",
+      ], function (Map, Basemap, TileLayer, echartsLayer, SceneView) {
+        var layer = new TileLayer({
+          url: "http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer",
+        });
+        var customBasemap = new Basemap({
+          baseLayers: [layer],
+          title: "Custom Basemap",
+          id: "myBasemap",
+        });
+        var map = new Map({
+          basemap: customBasemap,
+        });
+
+        var view = new SceneView({
+          center: [121.428911, 31.627321], // long, lat
+          container: "map",
+          map: map,
+          zoom: 17,
+          constraints: {
+            altitude: {
+              max: 300000,
+              min: 10,
+            },
+          },
+          // spatialReference:new SpatialReference(3857)
+        });
+
+        // 中心点
+        let centerData = {
+          id: 1,
+          name: "123",
+          type: "12345",
+          area: "东滩湿地派出所",
+          createTime: "1111111111",
+          lon: 121.428911,
+          lat: 31.627321,
+        };
+        // 周边点
+        let otherData = {
+          bkd: [
+            // 布控点
+            {
+              id: "100001", // 主键id
+              caseName: "交通多发地", // 名称
+              area: "城桥派出所", // 所属辖区
+              creTime: "2022-02-14 14:20:00", // 创建时间
+              lon: 121.428911,
+              lat: 31.627903,
+            },
+            {
+              id: "100002",
+              caseName: "交通多发地",
+              area: "城桥派出所",
+              creTime: "2022-02-14 14:20:00",
+              lon: 121.428711,
+              lat: 31.627903,
+            },
+          ],
+          pjxx: [
+            // 派警信息
+            {
+              id: "100003",
+              pjrs: "10",
+              area: "城桥派出所",
+              creTime: "2022-02-14 14:20:00",
+              lon: 121.428611,
+              lat: 31.627203,
+            },
+            {
+              id: "100004",
+              pjrs: "10",
+              area: "城桥派出所",
+              creTime: "2022-02-14 14:20:00",
+              lon: 121.423611,
+              lat: 31.625203,
+            },
+          ],
+        };
+
+        let geoCoordMap = {
+          centerPoint: [centerData.lon, centerData.lat],
+        };
+
+        let mapData = [];
+
+        // 添加布控点
+        for (let i = 0; i < otherData.bkd.length; i++) {
+          geoCoordMap[otherData.bkd[i].id] = [
+            otherData.bkd[i].lon,
+            otherData.bkd[i].lat,
+          ];
+
+          mapData.push([
+            {
+              name: "centerPoint",
+            },
+            {
+              name: otherData.bkd[i].id,
+              value: 50,
+              type:"controlInfo"
+            },
+          ]);
+        }
+
+        // 添加派警点
+        for (let i = 0; i < otherData.pjxx.length; i++) {
+          geoCoordMap[otherData.pjxx[i].id] = [
+            otherData.pjxx[i].lon,
+            otherData.pjxx[i].lat,
+          ];
+
+          mapData.push([
+            {
+              name: "centerPoint",
+            },
+            {
+              name: otherData.pjxx[i].id,
+              value: 50,
+              type:"policeInfo"
+            },
+          ]);
+        }
+
+        console.log(mapData,"mapData");
+
+        // let geoCoordMap = {
+        //   centerPoint: [121.428911, 31.627321],
+        //   布控点1: [121.428911, 31.627903],
+        //   布控点2: [121.428711, 31.627903],
+        //   布控点3: [121.422711, 31.617903],
+        //   派警点1: [121.428311, 31.624903],
+        //   派警点2: [121.428211, 31.621903],
+        //   派警点3: [121.423211, 31.621903],
+        // };
+
+        // let mapData = [
+        //   [{ name: "centerPoint" }, { name: "布控点1", value: 50 }],
+        //   [{ name: "centerPoint" }, { name: "布控点2", value: 50 }],
+        //   [{ name: "centerPoint" }, { name: "布控点3", value: 50 }],
+        //   [{ name: "centerPoint" }, { name: "派警点1", value: 50 }],
+        //   [{ name: "centerPoint" }, { name: "派警点2", value: 50 }],
+        //   [{ name: "centerPoint" }, { name: "派警点3", value: 50 }],
+        // ];
+
+        
+
+        // var planePath = "path://M0 25a25 25 0 1 0 0 24z";
+        let planePath = "arrow"
+        let convertData = (data) => {
+          var res = [];
+          for (var i = 0; i < data.length; i++) {
+            var dataItem = data[i];
+            // 起点
+            var fromCoord = geoCoordMap[dataItem[0].name];
+            // 终点
+            var toCoord = geoCoordMap[dataItem[1].name];
+            if (fromCoord && toCoord) {
+              res.push({
+                fromName: dataItem[0].name,
+                toName: dataItem[1].name,
+                coords: [fromCoord, toCoord],
+                value: dataItem[1].value,
+                type:dataItem[1].type
+              });
+            }
+          }
+          return res;
+        };
+        // var color = ["red", "green", "blue"];
+        // 布控点 - #71E88F
+        // 派警 - #4552FF
+        let color = ["red","#71E88F","#4552FF"]
+        var series = [];
+        [
+          ["centerPoint", mapData],
+          // , ['上海', SHData], ['广州', GZData]
+        ].forEach(function (item, i) {
+          let lineColor="red"
+          console.log(item,"mapData - item")
+          // if(item[1].type === "controlInfo"){
+          //   lineColor = "#71E88F"
+          // }
+
+          // if(item[1].type === "policeInfo"){
+          //   lineColor = "#4552FF"
+          // }
+
+          series.push(
+            {
+              name: item[0] + " Top10",
+              type: "lines",
+              coordinateSystem: "arcgis",
+              zlevel: 1,
+              effect: {
+                show: true,
+                period: 6,
+                trailLength: 0.7,
+                color: "#fff",
+                symbolSize: 30,
+              },
+              lineStyle: {
+                normal: {
+                  // color: lineColor,
+                  color:function(params){
+                    let type = params.data.type
+                    // 布控点
+                    if(type === "controlInfo"){
+                      return color[1]
+                    }else if(type === "policeInfo"){
+                      return color[2]
+                    }else{
+                      return color[0]
+                    }
+                    // console.log(params,"lineParams");
+                  },
+                  width: 7,
+                  curveness: 0.2,
+                },
+              },
+              data: convertData(item[1]),
+            },
+            {
+              name: item[0] + " Top10",
+              type: "lines",
+              coordinateSystem: "arcgis",
+              zlevel: 2,
+              symbol: ["none", "arrow"],
+              symbolSize: 10,
+              effect: {
+                show: true,
+                period: 6,
+                trailLength: 0,
+                symbol: planePath,
+                symbolSize: 25,
+              },
+              lineStyle: {
+                normal: {
+                  // color: lineColor,
+                  color:function(params){
+                    let type = params.data.type
+                    if(type === "controlInfo"){
+                      return color[1]
+                    }else if(type === "policeInfo"){
+                      return color[2]
+                    }else{
+                      return color[0]
+                    }
+                  },
+                  width: 7,
+                  opacity: 0.6,
+                  curveness: 0.2,
+                },
+              },
+              data: convertData(item[1]),
+            }
+          );
+        });
+
+        console.log(convertData, "convertData");
+        let chart = new echartsLayer(view);
+        let option = {
+          title: {
+            text: "ArcGIS API for Javascript4.10扩展Echarts4之模拟迁徙",
+            subtext: "Data from Echart社区,Develop By YANG",
+            left: "center",
+            textStyle: {
+              color: "#fff",
+            },
+          },
+          series: series,
+        };
+        console.log(option);
+        chart.setChartOption(option);
+      });
+    </script>
+  </head>
+  <body class="tundra">
+    <div id="map"></div>
+    <!-- <span class="mytitle"></span> -->
+  </body>
+</html>

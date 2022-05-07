@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>轨迹移动</title>
+    <script src="http://libs.baidu.com/jquery/2.1.4/jquery.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.16/esri/themes/light/main.css"
+    />
+    <script src="https://js.arcgis.com/4.16/"></script>
+  </head>
+  <style>
+    html,
+    body,
+    #mapContainer {
+      margin: 0px auto;
+      padding: 0px;
+      width: 100%;
+      height: 100%;
+    }
+
+    .btn {
+      position: absolute;
+      top: 5%;
+      right: 2%;
+    }
+  </style>
+  <body>
+    <div id="mapContainer"></div>
+    <div class="btn">
+      <button id="start">开始</button>
+      <button id="pause">暂停</button>
+      <button id="continue">继续</button>
+      <button id="back">返回</button>
+    </div>
+  </body>
+  <script>
+    require([
+      "esri/Map",
+      "esri/views/MapView",
+      "esri/layers/FeatureLayer",
+      "esri/layers/GraphicsLayer",
+      "esri/Graphic",
+      "esri/symbols/PictureMarkerSymbol",
+      "esri/symbols/CIMSymbol",
+      //"dojo/domReady!"
+    ], function (
+      Map,
+      MapView,
+      FeatureLayer,
+      GraphicsLayer,
+      Graphic,
+      PictureMarkerSymbol,
+      CIMSymbol
+    ) {
+      var map = new Map({
+        basemap: "satellite",
+      });
+      var view = new MapView({
+        container: "mapContainer",
+        center: [115.22908458010747, 32.636000827586614],
+        zoom: 11,
+        map: map,
+      });
+      view.when(function () {
+        view.on("click", function (evt) {
+          console.log(evt);
+          console.log(view);
+        });
+      });
+
+      const polyline = {
+        type: "polyline",
+        paths: [
+          [115.21947154300005, 32.735979284000052],
+          [115.22809709000001, 32.746389426000064],
+          [115.24980967100009, 32.749958617000061],
+          [115.26616846600007, 32.749363752000079],
+          [115.29739889100006, 32.74876888700004],
+          [115.3241678280001, 32.746686858000032],
+          [115.33398310400003, 32.737763880000045],
+          [115.33130621100008, 32.713374404000035],
+          [115.32089606900001, 32.699395071000026],
+          [115.28279788700002, 32.69116676200008],
+          [115.22660992600004, 32.703856560000077],
+          [115.20162558600009, 32.705046291000031],
+          [115.18913341600012, 32.69047209200005],
+          [115.19567693300007, 32.66994924100004],
+          [115.20251788400003, 32.66459545400005],
+          [115.25516345900007, 32.657457071000067],
+          [115.35809497600007, 32.659182180000073],
+          [115.36332979000008, 32.647760767000079],
+          [115.34572177900009, 32.639670600000045],
+          [115.29622899000003, 32.63015275600003],
+          [115.22056213000008, 32.633959893000053],
+          [115.18344253800001, 32.62682151000007],
+          [115.17154523300007, 32.603502792000029],
+          [115.18058718500004, 32.583991212000058],
+          [115.20628536400011, 32.575425152000037],
+          [115.26719956500006, 32.575425152000037],
+          [115.30669861800004, 32.574473368000042],
+          [115.36095032900005, 32.584942997000041],
+          [115.38807618500005, 32.611117068000055],
+          [115.39664224400008, 32.630628648000027],
+          [115.39664224400008, 32.673934838000037],
+          [115.3885520770001, 32.702488370000026],
+          [115.38093780200006, 32.755788297000038],
+          [115.38046190900002, 32.77625166100006],
+          [115.36190211400003, 32.794811457000037],
+          [115.30527094200011, 32.808612331000063],
+          [115.22436926700004, 32.809564115000057],
+          [115.14489527000001, 32.793383781000045],
+          [115.10254086400005, 32.760547219000046],
+          [115.0863605290001, 32.727710657000046],
+          [115.08160160700004, 32.694398203000048],
+          [115.09207123500005, 32.64918844400006],
+          [115.1030167560001, 32.631104540000024],
+          [115.14584705400011, 32.64490541400005],
+          [115.16250328100011, 32.635863462000032],
+          [115.14203991700003, 32.610165283000072],
+          [115.11538995300009, 32.588750134000065],
+          [115.11824530700005, 32.558293033000041],
+          [115.14299170100003, 32.537353776000032],
+          [115.19533984300006, 32.530691286000035],
+          [115.27433794900003, 32.530691286000035],
+          [115.31526467800006, 32.544492159000072],
+          [115.32716198300011, 32.579708182000047],
+          [115.32145127600006, 32.61206885200005],
+          [115.27528973300002, 32.623490265000044],
+          [115.24340495500007, 32.632532217000062],
+          [115.19914698100001, 32.657754503000035],
+          [115.17154523300007, 32.674886623000077],
+          [115.16821398800005, 32.684880359000033],
+          [115.17344880200005, 32.701536586000032],
+          [115.20485768700007, 32.714385675000074],
+          [115.15393722200008, 32.741035639000074],
+          // [115.12395601300011, 32.727710657000046],
+          // [115.12205244400002, 32.71057853800005],
+          // [115.13918456300007, 32.711054430000047],
+          // [115.15917203600009, 32.722951735000038],
+          // [115.17297291000011, 32.739132070000039],
+          // [115.18820146000007, 32.74341510000005],
+          // [115.21947154300005, 32.735979284000052]
+        ],
+        // spatialReference: view.spatialReference
+      };
+
+      //初始化路线符号
+      var lineSymbol = {
+        type: "cim",
+        data: {
+          type: "CIMSymbolReference",
+          symbol: {
+            type: "CIMLineSymbol",
+            symbolLayers: [
+              {
+                //箭头符号
+                type: "CIMVectorMarker",
+                enable: true,
+                size: 4,
+                markerPlacement: {
+                  type: "CIMMarkerPlacementAlongLineSameSize",
+                  endings: "WithMarkers",
+                  placementTemplate: [100], //箭头距离
+                },
+                frame: {
+                  xmin: -5,
+                  ymin: -5,
+                  xmax: 5,
+                  ymax: 5,
+                },
+                //箭头图形
+                markerGraphics: [
+                  {
+                    type: "CIMMarkerGraphic",
+                    geometry: {
+                      rings: [
+                        [
+                          [-8, -5.47],
+                          [-8, 5.6],
+                          [1.96, -0.03],
+                          [-8, -5.47],
+                        ],
+                      ],
+                    },
+                    symbol: {
+                      //箭头的颜色填充
+                      type: "CIMPolygonSymbol",
+                      symbolLayers: [
+                        {
+                          type: "CIMSolidFill",
+                          enable: true,
+                          color: [238, 238, 238, 255],
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+              {
+                //线符号
+                type: "CIMSolidStroke",
+                enable: true,
+                width: 3,
+                color: [103, 165, 245, 255],
+              },
+            ],
+          },
+        },
+      };
+
+      //已行驶的路线符号
+      var lineSymboled = {
+        type: "cim",
+        data: {
+          type: "CIMSymbolReference",
+          symbol: {
+            type: "CIMPointSymbol",
+            symbolLayers: [
+              {
+                type: "CIMVectorMarker",
+                enable: true,
+                anchorPointUnits: "Relative",
+                dominantSizeAxis3D: "Y",
+                size: 20,
+                billboardMode3D: "FaceNearPlane",
+                frame: {
+                  xmin: 0,
+                  ymin: 0,
+                  xmax: 21,
+                  ymax: 21,
+                },
+                markerGraphics: [
+                  {
+                    type: "CIMMarkerGraphic",
+                    geometry: {
+                      rings: [
+                        [
+                          [15, 18],
+                          [17, 16.5],
+                          [14.5, 15],
+                          [13.5, 16.5],
+                          [12.5, 15],
+                          [11.5, 16.5],
+                          [10.5, 15],
+                          [9.36, 15],
+                          [8.98, 14.62],
+                          [8.52, 14.34],
+                          [8.02, 14.16],
+                          [7.5, 14.1],
+                          [6.58, 14.28],
+                          [5.8, 14.8],
+                          [5.28, 15.58],
+                          [5.1, 16.5],
+                          [5.28, 17.42],
+                          [5.8, 18.2],
+                          [6.58, 18.72],
+                          [7.5, 18.9],
+                          [8.03, 18.84],
+                          [8.53, 18.66],
+                          [8.98, 18.38],
+                          [9.36, 18],
+                          [15, 18],
+                        ],
+                        [
+                          [7, 16],
+                          [7, 17],
+                          [6, 17],
+                          [6, 16],
+                          [7, 16],
+                        ],
+                        [
+                          [16, 9],
+                          [17, 9],
+                          [17, 6],
+                          [17, 4],
+                          [17, 2],
+                          [14, 2],
+                          [14, 4],
+                          [7, 4],
+                          [7, 2],
+                          [4, 2],
+                          [4, 4],
+                          [4, 6],
+                          [4, 9],
+                          [5, 9],
+                          [6, 13],
+                          [15, 13],
+                          [16, 9],
+                        ],
+                        [
+                          [7, 12],
+                          [6.25, 9],
+                          [14.75, 9],
+                          [14, 12],
+                          [7, 12],
+                        ],
+                        [
+                          [6.5, 5],
+                          [7.07, 5.11],
+                          [7.56, 5.44],
+                          [7.89, 5.93],
+                          [8, 6.5],
+                          [7.89, 7.07],
+                          [7.56, 7.56],
+                          [7.07, 7.89],
+                          [6.5, 8],
+                          [5.93, 7.89],
+                          [5.44, 7.56],
+                          [5.11, 7.07],
+                          [5, 6.5],
+                          [5.11, 5.93],
+                          [5.44, 5.44],
+                          [5.93, 5.11],
+                          [6.5, 5],
+                        ],
+                        [
+                          [14.5, 5],
+                          [15.07, 5.11],
+                          [15.56, 5.44],
+                          [15.89, 5.93],
+                          [16, 6.5],
+                          [15.89, 7.07],
+                          [15.56, 7.56],
+                          [15.07, 7.89],
+                          [14.5, 8],
+                          [13.93, 7.89],
+                          [13.44, 7.56],
+                          [13.11, 7.07],
+                          [13, 6.5],
+                          [13.11, 5.93],
+                          [13.44, 5.44],
+                          [13.93, 5.11],
+                          [14.5, 5],
+                        ],
+                      ],
+                    },
+                    symbol: {
+                      type: "CIMPolygonSymbol",
+                      symbolLayers: [
+                        {
+                          type: "CIMSolidStroke",
+                          enable: true,
+                          capStyle: "Round",
+                          joinStyle: "Round",
+                          lineStyle3D: "Strip",
+                          miterLimit: 10,
+                          width: 0,
+                          color: [110, 110, 110, 255],
+                        },
+                        {
+                          type: "CIMSolidFill",
+                          enable: true,
+                          color: [255, 140, 0, 255],
+                        },
+                      ],
+                    },
+                  },
+                ],
+                scaleSymbolsProportionally: true,
+                respectFrame: true,
+              },
+            ],
+          },
+        },
+      };
+      var lineLaye = new GraphicsLayer({
+        id: "lineLaye",
+      });
+      map.add(lineLaye);
+      lineLaye.add(
+        new Graphic({
+          geometry: polyline,
+          symbol: lineSymbol,
+        })
+      );
+
+      //已跑过的路线图层
+      var lineLayed = new GraphicsLayer({
+        id: "lineLayed",
+      });
+      map.add(lineLayed);
+
+      //创建起点
+      var startP = {
+        type: "point",
+        longitude: 115.21947154300005,
+        latitude: 32.735979284000052,
+      };
+      var startS = {
+        type: "picture-marker",
+        url: "http://47.110.79.226:8384/img/fj.png",
+        //url:'./car.png',
+        width: "32px",
+        height: "32px",
+      };
+
+      var moveLayer = new GraphicsLayer({
+        id: "moveLayer",
+      });
+      map.add(moveLayer);
+      let moveGra = new Graphic({
+        geometry: startP,
+        symbol: startS,
+      });
+      moveLayer.add(moveGra);
+
+      var startNum, endNum, moving;
+
+      function move(start, end) {
+        let x1 = polyline.paths[start][0];
+        let y1 = polyline.paths[start][1];
+        let x2 = polyline.paths[end][0];
+        let y2 = polyline.paths[end][1];
+        //斜率
+        let p = (y2 - y1) / (x2 - x1);
+        //速度
+        let v = 0.001;
+        moving = setInterval(function () {
+          startNum = start;
+          endNum = end;
+          //分别计算 x,y轴的方向和速度
+          if (Math.abs(p) == Number.POSITIVE_INFINITY) {
+            //垂直的时候斜率无穷大
+            moveGra.geometry.y += v;
+          } else {
+            if (x2 < x1) {
+              moveGra.geometry.x -= (1 / Math.sqrt(1 + p * p)) * v;
+              moveGra.geometry.y -= (p / Math.sqrt(1 + p * p)) * v;
+              //计算角度
+              moveGra.symbol.angle = calcAngle(x1, y1, x2, y2); //(Math.PI / 2 - Math.atan(p)) * 180 / Math.PI+180
+            } else {
+              moveGra.geometry.x += (1 / Math.sqrt(1 + p * p)) * v;
+              moveGra.geometry.y += (p / Math.sqrt(1 + p * p)) * v;
+              //计算角度
+              moveGra.symbol.angle = calcAngle(x1, y1, x2, y2);
+            }
+          }
+          //重新绘制
+          moveLayer.add(moveGra);
+          //画线
+          if (start == 0) {
+            addLineSYmboled(0);
+          } else {
+            addLineSYmboled(end);
+          }
+          if (
+            Math.abs(moveGra.geometry.x - x2) <= v &&
+            Math.abs(moveGra.geometry.y - y2) <= v
+          ) {
+            clearInterval(moving);
+            startNum = start++;
+            endNum = end++;
+            if (end < polyline.paths.length) {
+              move(start, end);
+            }
+          }
+        }, 50);
+      }
+
+      function calcAngle(x1, y1, x2, y2) {
+        let tan =
+          (Math.atan(Math.abs((y2 - y1) / (x2 - x1))) * 180) / Math.PI + 90;
+        if (x2 > x1 && y2 > y1) {
+          return -tan + 180;
+        } else if (x2 > x1 && y2 < y1) {
+          return tan;
+        } else if (x2 < x1 && y2 > y1) {
+          return tan - 180;
+        } else {
+          return -tan;
+        }
+      }
+
+      function addLineSYmboled(end) {
+        lineLayed.removeAll();
+        let path = null;
+        if (end == 0) {
+          path = polyline.paths.slice(0, 1);
+        } else {
+          path = polyline.paths.slice(0, end);
+        }
+        path.push([moveGra.geometry.x, moveGra.geometry.y]);
+        let polylined = {
+          type: "polyline",
+          paths: path,
+          // spatialReference: view.spatialReference
+        };
+        lineLayed.add(
+          new Graphic({
+            geometry: polylined,
+            symbol: lineSymboled,
+          })
+        );
+      }
+
+      $(":button").click(function () {
+        let value = $(this).attr("id");
+        switch (value) {
+          case "start": {
+            //开始
+            if (moving != undefined) {
+              clearInterval(moving); //清除移动
+            }
+            moveGra.geometry = startP;
+            move(0, 1);
+            lineLayed.removeAll();
+            break;
+          }
+          case "pause": {
+            //暂停
+            clearInterval(moving);
+            break;
+          }
+          case "continue": {
+            if (moving != undefined) {
+              clearInterval(moving); //清除移动
+            }
+            move(startNum, endNum);
+            break;
+          }
+          case "back": {
+            if (moving != undefined) {
+              clearInterval(moving); //清除移动
+            }
+            lineLayed.removeAll();
+            moveGra.geometry = startP;
+            moveGra.symbol.angle = 0;
+            break;
+          }
+        }
+      });
+    });
+  </script>
+</html>

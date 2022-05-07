@@ -1,0 +1,143 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <title>Intro to graphics | Sample | ArcGIS API for JavaScript 4.20</title>
+
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.16/esri/themes/light/main.css"
+    />
+    <script src="https://js.arcgis.com/4.16/"></script>
+
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+
+    <script>
+      require([
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/Graphic",
+        "esri/symbols/SimpleFillSymbol",
+        "esri/symbols/SimpleLineSymbol",
+        "esri/Color",
+        "esri/Basemap",
+      ], (
+        Map,
+        MapView,
+        Graphic,
+        SimpleFillSymbol,
+        SimpleLineSymbol,
+        Color,
+        Basemap
+      ) => {
+        const map = new Map({
+          basemap: "topo",
+        });
+
+        const view = new MapView({
+          center: [-80, 35],
+          container: "viewDiv",
+          map: map,
+          zoom: 3,
+        });
+
+        /****************************
+         * Create a polyline graphic
+         ****************************/
+
+        // First create a line geometry (this is the Keystone pipeline)
+        const polyline = {
+          type: "polyline", // autocasts as new Polyline()
+          paths: [
+            [-111.3, 52.68],
+            [-98, 49.5],
+            [-93.94, 29.89],
+          ],
+        };
+
+        // Create a symbol for drawing the line
+        const lineSymbol = {
+          type: "simple-line", // autocasts as SimpleLineSymbol()
+          color: [226, 119, 40],
+          width: 4,
+        };
+
+        lineSymbol.marker = {
+          color: "blue",
+          placement: "begin",
+          style: "diamond",
+        };
+
+
+        // const lineSymbol = new SimpleFillSymbol(
+        //   SimpleFillSymbol.STYLE_SOLID,
+        //   new SimpleLineSymbol(
+        //     SimpleLineSymbol.STYLE_SOLID,
+        //     new Color([255, 0, 0, 0.65]),
+        //     5
+        //   ),
+        //   new Color([255, 0, 0, 0.35])
+        // );
+
+        // Create an object for storing attributes related to the line
+        const lineAtt = {
+          Name: "Keystone Pipeline",
+          Owner: "TransCanada",
+          Length: "3,456 km",
+        };
+
+        /*******************************************
+         * Create a new graphic and add the geometry,
+         * symbol, and attributes to it. You may also
+         * add a simple PopupTemplate to the graphic.
+         * This allows users to view the graphic's
+         * attributes when it is clicked.
+         ******************************************/
+        const polylineGraphic = new Graphic({
+          geometry: polyline,
+          symbol: lineSymbol,
+          attributes: lineAtt,
+          popupTemplate: {
+            // autocasts as new PopupTemplate()
+            title: "{Name}",
+            content: [
+              {
+                type: "fields",
+                fieldInfos: [
+                  {
+                    fieldName: "Name",
+                  },
+                  {
+                    fieldName: "Owner",
+                  },
+                  {
+                    fieldName: "Length",
+                  },
+                ],
+              },
+            ],
+          },
+        });
+
+        // Add the graphics to the view's graphics layer
+        view.graphics.addMany([polylineGraphic]);
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="viewDiv"></div>
+  </body>
+</html>

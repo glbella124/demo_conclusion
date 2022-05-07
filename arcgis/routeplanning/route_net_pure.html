@@ -1,0 +1,196 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <!--
+     ArcGIS API for JavaScript, https://js.arcgis.com
+     For more information about the tasks-route sample,
+     read the original sample description at developers.arcgis.com.
+     https://developers.arcgis.com/javascript/latest/sample-code/tasks-route/index.html
+     -->
+    <title>RouteTask | Sample | ArcGIS API for JavaScript 4.16</title>
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+
+      #paneDiv {
+        position: absolute;
+        top: 10px;
+        left: 62px;
+        padding: 0 12px 0 12px;
+        background-color: rgba(0, 0, 0, 0.5);
+        color: white;
+      }
+    </style>
+
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.16/esri/themes/light/main.css"
+    />
+    <script src="https://js.arcgis.com/4.16/"></script>
+
+    <script>
+      require([
+        "esri/Map",
+        "esri/views/MapView",
+        "esri/Graphic",
+        "esri/layers/GraphicsLayer",
+        "esri/tasks/RouteTask",
+        "esri/tasks/support/RouteParameters",
+        "esri/tasks/support/FeatureSet",
+        "esri/geometry/Point",
+        "esri/geometry/SpatialReference",
+        "esri/Basemap",
+        "esri/layers/MapImageLayer"
+      ], function (
+        Map,
+        MapView,
+        Graphic,
+        GraphicsLayer,
+        RouteTask,
+        RouteParameters,
+        FeatureSet,
+        Point,
+        SpatialReference,
+        Basemap,
+        MapImageLayer
+      ) {
+        // Point the URL to a valid route service that uses an
+        // ArcGIS Online hosted service proxy
+
+        //xy坐标
+        let routeTask = new RouteTask({
+          url: "http://119.3.104.235:6080/arcgis/rest/services/soil/route/NAServer/Route",
+        });
+        // var routeTask = new RouteTask({
+        //   url: "http://10.101.59.253:6080/arcgis/rest/services/soil/route/NAServer/Route",
+        // });
+
+        // The stops and route result will be stored in this layer
+        let routeLayer = new GraphicsLayer();
+
+
+        // Setup the route parameters
+        let routeParams = new RouteParameters({
+          stops: new FeatureSet(),
+          outSpatialReference: {
+            // autocasts as new SpatialReference()
+            wkid: 3857, //102100
+          },
+        });
+
+        // Define the symbology used to display the stops
+        let stopSymbol = {
+          type: "simple-marker", // autocasts as new SimpleMarkerSymbol()
+          style: "cross",
+          size: 10,
+          outline: {
+            // autocasts as new SimpleLineSymbol()
+            width: 4,
+            color: "red",
+          },
+        };
+
+        // Define the symbology used to display the route
+        let routeSymbol = {
+          type: "simple-line", // autocasts as SimpleLineSymbol()
+          color: [255, 165, 0, 1],
+          width: 3,
+        };
+
+        var basemap = new Basemap({
+          baseLayers: [
+            new MapImageLayer({
+              url: "http://119.3.104.235:6080/arcgis/rest/services/soil/route/MapServer",
+            }),
+          ],
+        });
+
+        var map = new Map({
+          basemap: basemap,
+          //layers: [routeLayer], // Add the route layer to the map
+        });
+        var view = new MapView({
+          container: "viewDiv", // Reference to the scene div created in step 5
+          map: map, // Reference to the map object created before the scene
+          center: [8928, -4777],
+          spatialReference: {
+            wkid: 3857,
+          },
+          //center: [121.5, 31.2],
+
+          zoom: 14,
+        });
+
+        map.add(routeLayer)
+
+        // Adds a graphic when the user clicks the map. If 2 or more points exist, route is solved.
+        //view.on("click", addStop);
+
+        //addStop(121.46606405273438,31.130596636121965)
+        //addStop(121.6212459375,31.00237795519903)
+        //addStop(121.51412923828126,30.910519131723234)
+        //[3107.56,196], //经度，纬度
+        //[8928,-4777],
+        //[8938,-4000]
+        addStop(3107.56, 196,routeLayer);
+        addStop(8928, -4777,routeLayer);
+        addStop(8938, -4000,routeLayer);
+
+        let route
+
+        function addStop(x, y,route) {
+          //Add a point at the location of the map click
+          const stop = new Graphic({
+            geometry: new Point({
+              //longitude: x,
+              //latitude: y,
+              x: x, //3107.56 ,
+              y: y, //196,
+              spatialReference: SpatialReference.WebMercator, // 自定义坐标一定要定义坐标系，和view相同
+            }),
+            symbol: stopSymbol,
+          });
+          route.add(stop);
+
+          // Execute the route task if 2 or more stops are input
+          routeParams.stops.features.push(stop);
+          if (routeParams.stops.features.length >= 2) {
+            routeTask.solve(routeParams).then(showRoute);
+          }
+        }
+
+        // Adds the solved route to the map as a graphic
+        function showRoute(data) {
+          debugger;
+          console.log(data.routeResults[0]);
+          var routeResult = data.routeResults[0].route;
+          routeResult.symbol = routeSymbol;
+          routeLayer.add(routeResult);
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <div id="viewDiv"></div>
+    <div id="paneDiv" class="esri-widget">
+      <div>
+        <p>
+          Click on the map to add stops to the route. The route from the last
+          stop to the newly added stop is calculated. If a stop is not
+          reachable, it is removed and the last valid point is set as the
+          starting point.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

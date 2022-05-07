@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>轨迹移动</title>
+    <script src="http://libs.baidu.com/jquery/2.1.4/jquery.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.23/esri/themes/light/main.css"
+    />
+    <script src="https://js.arcgis.com/4.23/"></script>
+  </head>
+  <style>
+    html,
+    body,
+    #mapContainer {
+      margin: 0px auto;
+      padding: 0px;
+      width: 100%;
+      height: 100%;
+    }
+
+    .btn {
+      position: absolute;
+      top: 5%;
+      right: 2%;
+    }
+  </style>
+  <body>
+    <div id="mapContainer"></div>
+    <div class="btn">
+      <button id="start">开始</button>
+      <button id="pause">暂停</button>
+      <button id="continue">继续</button>
+      <button id="back">返回</button>
+    </div>
+  </body>
+  <script>
+    require([
+      "esri/Map",
+      "esri/views/MapView",
+      "esri/layers/FeatureLayer",
+      "esri/layers/GraphicsLayer",
+      "esri/Graphic",
+      "esri/symbols/PictureMarkerSymbol",
+      "esri/symbols/CIMSymbol",
+      "esri/symbols/LineSymbol3D",
+      //"dojo/domReady!"
+    ], function (
+      Map,
+      MapView,
+      FeatureLayer,
+      GraphicsLayer,
+      Graphic,
+      PictureMarkerSymbol,
+      CIMSymbol,
+      LineSymbol3D
+    ) {
+      let map = new Map({
+        basemap: "satellite",
+      });
+      let view = new MapView({
+        container: "mapContainer",
+        center: [115.22908458010747, 32.636000827586614],
+        zoom: 11,
+        map: map,
+      });
+      view.when(function () {
+        view.on("click", function (evt) {
+          console.log(evt);
+          console.log(view);
+        });
+      });
+
+      const polyline = {
+        type: "polyline",
+        paths: [
+          [115.21947154300005, 32.735979284000052],
+          [115.22809709000001, 32.746389426000064],
+          [115.24980967100009, 32.749958617000061],
+          [115.26616846600007, 32.749363752000079],
+          [115.29739889100006, 32.74876888700004],
+          [115.3241678280001, 32.746686858000032],
+          [115.33398310400003, 32.737763880000045],
+          [115.33130621100008, 32.713374404000035],
+          [115.32089606900001, 32.699395071000026],
+          [115.28279788700002, 32.69116676200008],
+          [115.22660992600004, 32.703856560000077],
+          [115.20162558600009, 32.705046291000031],
+          [115.18913341600012, 32.69047209200005],
+          [115.19567693300007, 32.66994924100004],
+          [115.20251788400003, 32.66459545400005],
+          [115.25516345900007, 32.657457071000067],
+          [115.35809497600007, 32.659182180000073],
+          [115.36332979000008, 32.647760767000079],
+          [115.34572177900009, 32.639670600000045],
+          [115.29622899000003, 32.63015275600003],
+          [115.22056213000008, 32.633959893000053],
+          [115.18344253800001, 32.62682151000007],
+          [115.17154523300007, 32.603502792000029],
+          [115.18058718500004, 32.583991212000058],
+          [115.20628536400011, 32.575425152000037],
+          [115.26719956500006, 32.575425152000037],
+          [115.30669861800004, 32.574473368000042],
+          [115.36095032900005, 32.584942997000041],
+          [115.38807618500005, 32.611117068000055],
+          [115.39664224400008, 32.630628648000027],
+          [115.39664224400008, 32.673934838000037],
+          [115.3885520770001, 32.702488370000026],
+          [115.38093780200006, 32.755788297000038],
+          [115.38046190900002, 32.77625166100006],
+          [115.36190211400003, 32.794811457000037],
+          [115.30527094200011, 32.808612331000063],
+          [115.22436926700004, 32.809564115000057],
+          [115.14489527000001, 32.793383781000045],
+          [115.10254086400005, 32.760547219000046],
+          [115.0863605290001, 32.727710657000046],
+          [115.08160160700004, 32.694398203000048],
+          [115.09207123500005, 32.64918844400006],
+          [115.1030167560001, 32.631104540000024],
+          [115.14584705400011, 32.64490541400005],
+          [115.16250328100011, 32.635863462000032],
+          [115.14203991700003, 32.610165283000072],
+          [115.11538995300009, 32.588750134000065],
+          [115.11824530700005, 32.558293033000041],
+          [115.14299170100003, 32.537353776000032],
+          [115.19533984300006, 32.530691286000035],
+          [115.27433794900003, 32.530691286000035],
+          [115.31526467800006, 32.544492159000072],
+          [115.32716198300011, 32.579708182000047],
+          [115.32145127600006, 32.61206885200005],
+          [115.27528973300002, 32.623490265000044],
+          [115.24340495500007, 32.632532217000062],
+          [115.19914698100001, 32.657754503000035],
+          [115.17154523300007, 32.674886623000077],
+          [115.16821398800005, 32.684880359000033],
+          [115.17344880200005, 32.701536586000032],
+          [115.20485768700007, 32.714385675000074],
+          [115.15393722200008, 32.741035639000074],
+          // [115.12395601300011, 32.727710657000046],
+          // [115.12205244400002, 32.71057853800005],
+          // [115.13918456300007, 32.711054430000047],
+          // [115.15917203600009, 32.722951735000038],
+          // [115.17297291000011, 32.739132070000039],
+          // [115.18820146000007, 32.74341510000005],
+          // [115.21947154300005, 32.735979284000052]
+        ],
+        // spatialReference: view.spatialReference
+      };
+
+      //初始化路线符号
+      //依次叠加不同透明度的图层
+      let lineSymbol = {
+        type: "simple-line",
+        color: [103, 170, 245, 0.1],
+        width: 14,
+      };
+
+      let lineSymbolSecond = {
+        type: "simple-line",
+        color: [103, 170, 245, 0.2],
+        width: 10,
+      };
+
+      let lineSymbolThird = {
+        type: "simple-line",
+        color: [103, 170, 245, 0.4],
+        width: 6,
+      };
+
+      //已行驶的路线符号
+      let lineSymboled = {
+        type: "simple-line",
+        color: [103, 165, 245, 1],
+        width: 4,
+        outline: {
+          color: [110, 165, 245, 1],
+          width: 5,
+        },
+      };
+
+      let routeLayer = new GraphicsLayer({});
+
+      let routeLayerSecond = new GraphicsLayer({});
+
+      let routeLayerThird = new GraphicsLayer({});
+
+      map.add(routeLayer);
+      routeLayer.add(
+        new Graphic({
+          geometry: polyline,
+          symbol: lineSymbol,
+        })
+      );
+
+      map.add(routeLayerSecond);
+      routeLayerSecond.add(
+        new Graphic({
+          geometry: polyline,
+          symbol: lineSymbolSecond,
+        })
+      );
+
+      map.add(routeLayerThird);
+      routeLayerThird.add(
+        new Graphic({
+          geometry: polyline,
+          symbol: lineSymbolThird,
+        })
+      );
+
+      //已跑过的路线图层
+      let lineLayeFirstd = new GraphicsLayer({
+        id: "lineLayeFirstd",
+      });
+      map.add(lineLayeFirstd);
+
+      //创建起点
+      let startP = {
+        type: "point",
+        longitude: 115.21947154300005,
+        latitude: 32.735979284000052,
+      };
+      let startS = {
+        type: "picture-marker",
+        url: "http://47.110.79.226:8384/img/fj.png",
+        //url:'./car.png',
+        width: "32px",
+        height: "32px",
+      };
+
+      let moveLayer = new GraphicsLayer({
+        id: "moveLayer",
+      });
+      map.add(moveLayer);
+      let moveGra = new Graphic({
+        geometry: startP,
+        symbol: startS,
+      });
+      moveLayer.add(moveGra);
+
+      let startNum, endNum, moving;
+
+      function move(start, end) {
+        moving = requestAnimationFrame(animationFrame);
+        function animationFrame() {
+          {
+            let x1 = polyline.paths[start][0];
+            let y1 = polyline.paths[start][1];
+            let x2 = polyline.paths[end][0];
+            let y2 = polyline.paths[end][1];
+            //斜率
+            let p = (y2 - y1) / (x2 - x1);
+            console.log(p);
+            //当前段总的距离
+            let allDis = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+            //速度
+            let v = 0.0005;
+            startNum = start;
+            endNum = end;
+            //分别计算 x,y轴的方向和速度
+            if (Math.abs(p) == Number.POSITIVE_INFINITY) {
+              //垂直的时候斜率无穷大
+              moveGra.geometry.y += v;
+            } else {
+              if (x2 < x1) {
+                moveGra.geometry.x -= (1 / Math.sqrt(1 + p * p)) * v;
+                moveGra.geometry.y -= (p / Math.sqrt(1 + p * p)) * v;
+                //计算角度
+                moveGra.symbol.angle = calcAngle(x1, y1, x2, y2); //(Math.PI / 2 - Math.atan(p)) * 180 / Math.PI+180
+              } else {
+                moveGra.geometry.x += (1 / Math.sqrt(1 + p * p)) * v;
+                moveGra.geometry.y += (p / Math.sqrt(1 + p * p)) * v;
+                //计算角度
+                moveGra.symbol.angle = calcAngle(x1, y1, x2, y2);
+              }
+            }
+
+            let dis = Math.sqrt(
+              Math.pow(moveGra.geometry.x - x1, 2) +
+                Math.pow(moveGra.geometry.y - y1, 2)
+            );
+
+            if (dis > allDis) {
+              // 出现折点 需要转弯
+              moveGra.geometry.x = x2;
+              moveGra.geometry.y = y2;
+            }
+
+            //重新绘制
+            moveLayer.add(moveGra);
+            //画线
+            if (start == 0) {
+              addLineSYmboled(0);
+            } else {
+              addLineSYmboled(end);
+            }
+
+            // if (
+            //   Math.abs(moveGra.geometry.x - x2) <= v &&
+            //   Math.abs(moveGra.geometry.y - y2) <= v
+            // ) {
+            if (dis > allDis) {
+              //斜率不等，则转弯
+              //   cancelAnimationFrame(moving);
+              // clearInterval(moving);
+              startNum = start++;
+              endNum = end++;
+              if (end < polyline.paths.length) {
+                moving = requestAnimationFrame(animationFrame);
+              }
+            } else {
+              //这里是直线
+              moving = requestAnimationFrame(animationFrame);
+            }
+          }
+          //
+        }
+      }
+
+      function calcAngle(x1, y1, x2, y2) {
+        let tan =
+          (Math.atan(Math.abs((y2 - y1) / (x2 - x1))) * 180) / Math.PI + 90;
+        if (x2 > x1 && y2 > y1) {
+          return -tan + 180;
+        } else if (x2 > x1 && y2 < y1) {
+          return tan;
+        } else if (x2 < x1 && y2 > y1) {
+          return tan - 180;
+        } else {
+          return -tan;
+        }
+      }
+
+      function addLineSYmboled(end) {
+        lineLayeFirstd.removeAll();
+        let path = null;
+        if (end == 0) {
+          path = polyline.paths.slice(0, 1);
+        } else {
+          path = polyline.paths.slice(0, end);
+        }
+        path.push([moveGra.geometry.x, moveGra.geometry.y]);
+        let polylined = {
+          type: "polyline",
+          paths: path,
+          // spatialReference: view.spatialReference
+        };
+        lineLayeFirstd.add(
+          new Graphic({
+            geometry: polylined,
+            symbol: lineSymboled,
+          })
+        );
+      }
+
+      $(":button").click(function () {
+        let value = $(this).attr("id");
+        switch (value) {
+          case "start": {
+            //开始
+            if (moving != undefined) {
+              clearInterval(moving); //清除移动
+            }
+            moveGra.geometry = startP;
+            move(0, 1);
+            lineLayeFirstd.removeAll();
+            break;
+          }
+          case "pause": {
+            //暂停
+            clearInterval(moving);
+            break;
+          }
+          case "continue": {
+            if (moving != undefined) {
+              clearInterval(moving); //清除移动
+            }
+            move(startNum, endNum);
+            break;
+          }
+          case "back": {
+            if (moving != undefined) {
+              clearInterval(moving); //清除移动
+            }
+            lineLayeFirstd.removeAll();
+            moveGra.geometry = startP;
+            moveGra.symbol.angle = 0;
+            break;
+          }
+        }
+      });
+    });
+  </script>
+</html>

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>
+    Add Graphics to a SceneView | Sample | ArcGIS API for JavaScript 4.16
+  </title>
+  <script src="http://libs.baidu.com/jquery/2.1.4/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://js.arcgis.com/4.16/esri/themes/light/main.css" />
+  <script src="https://js.arcgis.com/4.16/"></script>
+
+  <style>
+    html,
+    body,
+    #viewDiv {
+      padding: 0;
+      margin: 0 auto;
+      height: 100%;
+      width: 100%;
+    }
+
+    .btn {
+      position: absolute;
+      top: 5%;
+      right: 2%;
+    }
+  </style>
+
+  <script>
+    require([
+      "esri/Map",
+      "esri/views/SceneView",
+      "esri/layers/GraphicsLayer",
+      "esri/Graphic",
+      "esri/symbols/PictureMarkerSymbol",
+      "esri/geometry/Circle",
+      "esri/geometry/Polygon",
+    ], function (
+      Map,
+      SceneView,
+      GraphicsLayer,
+      Graphic,
+      PictureMarkerSymbol,
+      Circle,
+      Polygon
+    ) {
+      let map = new Map({
+        basemap: "hybrid",
+      });
+
+      let view = new SceneView({
+        zoom:12,
+        container: "viewDiv",
+        map: map,
+        camera: {
+          // autocasts as new Camera()
+          position: {
+            // autocasts as new Point()
+            x: 115.21947154300005, //-0.17746710975334712,
+            y: 32.735979284000052, //51.44543992422466,
+            z: 1266.7049653716385,
+          },
+          heading: 0.34445102566290225,
+          tilt: 82.95536300536367,
+        },
+      });
+
+      /*********************
+       * Add graphics layer
+       *********************/
+
+      let routeLayer = new GraphicsLayer();
+      map.add(routeLayer);
+
+
+      /****************************
+       * Add a 3D polyline graphic
+       ****************************/
+      
+
+      const circleGeometry = new Circle({
+        center: [115.21947154300005, 32.735979284000052, 400],
+        geodesic: true,
+        numberOfPoints: 200,//点的数量影响无人机飞行速度
+        radius: 500,
+        //radiusUnit: "kilometers",
+        radiusUnit: "meters"
+      });
+
+      const polyline = {
+        type: "polyline",
+        paths: circleGeometry.rings[0],
+        // spatialReference: view.spatialReference
+      };
+
+      routeLayer.add(
+        new Graphic({
+          geometry: circleGeometry,
+          symbol: {
+            type: "simple-fill",
+            style: "none",
+            outline: {
+              width: 3,
+              color: [103, 165, 245, 0.4],
+            },
+          },
+        })
+      );
+
+      lineSymbol = {
+        type: "simple-line", // autocasts as SimpleLineSymbol()
+        color: [103, 165, 245, 0],
+        width: 5,
+      };
+
+      routeLayer.add(
+        new Graphic({
+          geometry: polyline,
+          symbol: lineSymbol,
+        })
+      );
+
+      //已行驶的路线符号
+      let lineSymboled = {
+        type: "simple-line",
+        color: [103, 165, 245, 0],
+        width: 4,
+        outline: {
+          color: [110, 165, 245, 0],
+          width: 5,
+        },
+      };
+
+      let lineLayeFirstd = new GraphicsLayer({
+        id: "lineLayeFirstd",
+      });
+      map.add(lineLayeFirstd);
+
+
+
+      //创建起点
+      let startP = {
+        type: "point",
+        x: 115.21947154300005,
+        y: 32.735979284000052,
+        z: 400,
+      };
+      let startS = {
+        type: "picture-marker",
+        url: "drone.png",
+        width: "64px",
+        height: "64px",
+      };
+
+      let moveLayer = new GraphicsLayer({
+        id: "moveLayer",
+      });
+      map.add(moveLayer);
+      let moveGra = new Graphic({
+        geometry: startP,
+        symbol: startS,
+      });
+      moveLayer.add(moveGra);
+
+      let startNum, endNum, moving;
+
+      function move(start, end, zValue) {
+        moving = requestAnimationFrame(animationFrame);
+        function animationFrame() {
+          {
+            let x1 = polyline.paths[start][0];
+            let y1 = polyline.paths[start][1];
+            let x2 = polyline.paths[end][0];
+            let y2 = polyline.paths[end][1];
+            //斜率
+            let p = (y2 - y1) / (x2 - x1);
+            //console.log(p);
+            //当前段总的距离
+            let allDis = Math.sqrt(
+              Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)
+            );
+            //速度
+            let v = 0.0005;
+            startNum = start;
+            endNum = end;
+            //离地面高度
+            moveGra.geometry.z = zValue;
+            //分别计算 x,y轴的方向和速度
+            if (Math.abs(p) == Number.POSITIVE_INFINITY) {
+              //垂直的时候斜率无穷大
+              moveGra.geometry.y += v;
+            } else {
+              if (x2 < x1) {
+                moveGra.geometry.x -= (1 / Math.sqrt(1 + p * p)) * v;
+                moveGra.geometry.y -= (p / Math.sqrt(1 + p * p)) * v;
+                //计算角度
+                moveGra.symbol.angle = calcAngle(x1, y1, x2, y2); //(Math.PI / 2 - Math.atan(p)) * 180 / Math.PI+180
+              } else {
+                moveGra.geometry.x += (1 / Math.sqrt(1 + p * p)) * v;
+                moveGra.geometry.y += (p / Math.sqrt(1 + p * p)) * v;
+                //计算角度
+                moveGra.symbol.angle = calcAngle(x1, y1, x2, y2);
+              }
+            }
+
+            let dis = Math.sqrt(
+              Math.pow(moveGra.geometry.x - x1, 2) +
+              Math.pow(moveGra.geometry.y - y1, 2)
+            );
+
+            if (dis > allDis) {
+              // 出现折点 需要转弯
+              moveGra.geometry.x = x2;
+              moveGra.geometry.y = y2;
+            }
+
+            //重新绘制
+            moveLayer.add(moveGra);
+            //画线
+            if (start == 0) {
+              addLineSYmboled(0);
+            } else {
+              addLineSYmboled(end);
+            }
+
+            if (dis > allDis) {
+              //斜率不等，则转弯
+              startNum = start++;
+              endNum = end++;
+              if (end < polyline.paths.length) {
+                moving = requestAnimationFrame(animationFrame);
+              }
+            } else {
+              //这里是直线
+              moving = requestAnimationFrame(animationFrame);
+            }
+          }
+          //
+        }
+      }
+
+      function calcAngle(x1, y1, x2, y2) {
+        let tan =
+          (Math.atan(Math.abs((y2 - y1) / (x2 - x1))) * 180) / Math.PI + 90;
+        if (x2 > x1 && y2 > y1) {
+          return -tan + 180;
+        } else if (x2 > x1 && y2 < y1) {
+          return tan;
+        } else if (x2 < x1 && y2 > y1) {
+          return tan - 180;
+        } else {
+          return -tan;
+        }
+      }
+
+      function addLineSYmboled(end) {
+        lineLayeFirstd.removeAll();
+        let path = null;
+        if (end == 0) {
+          path = polyline.paths.slice(0, 1);
+        } else {
+          path = polyline.paths.slice(0, end);
+        }
+        path.push([
+          moveGra.geometry.x,
+          moveGra.geometry.y,
+          moveGra.geometry.z,
+        ]);
+
+        //console.log(path[path.length-1]);
+
+        let polylined = {
+          type: "polyline",
+          paths: path,
+          // spatialReference: view.spatialReference
+        };
+
+        lineLayeFirstd.add(
+          new Graphic({
+            geometry: polylined,
+            symbol: lineSymboled,
+          })
+        );
+
+        //移动marker的坐标为传入的path数组的最后一个值
+        let movePoint = {
+          type: "point",
+          x: path[path.length - 1][0],
+          y: path[path.length - 1][1],
+          z: path[path.length - 1][2]
+        }
+
+        console.log(movePoint);
+
+        lineLayeFirstd.add(
+          new Graphic({
+            geometry: movePoint,
+            symbol: startS
+          })
+        )
+
+      }
+
+      $(":button").click(function () {
+        let value = $(this).attr("id");
+        switch (value) {
+          case "start": {
+            //开始
+            if (moving != undefined) {
+              cancelAnimationFrame(moving); //清除移动
+            }
+            moveGra.geometry = startP;
+            //高值
+            move(0, 1, 400);
+            lineLayeFirstd.removeAll();
+            break;
+          }
+          case "pause": {
+            //暂停
+            cancelAnimationFrame(moving);
+            break;
+          }
+          case "continue": {
+            if (moving != undefined) {
+              cancelAnimationFrame(moving); //清除移动
+            }
+            move(startNum, endNum, 400);
+            break;
+          }
+          case "back": {
+            if (moving != undefined) {
+              cancelAnimationFrame(moving); //清除移动
+            }
+            lineLayeFirstd.removeAll();
+            moveGra.geometry = startP;
+            moveGra.symbol.angle = 0;
+            break;
+          }
+        }
+      });
+    });
+  </script>
+</head>
+
+<body>
+  <div id="viewDiv"></div>
+  <div class="btn">
+    <button id="start">开始</button>
+    <button id="pause">暂停</button>
+    <button id="continue">继续</button>
+    <button id="back">返回</button>
+  </div>
+</body>
+
+</html>
