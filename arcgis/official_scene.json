@@ -1,0 +1,232 @@
+{
+  "serviceItemId": "db43954d71704d48be8bafcf18361aea",
+  "serviceName": "campus_buildings",
+  "name": "campus_buildings",
+  "currentVersion": 10.81,
+  "serviceVersion": "1.7",
+  "supportedBindings": ["REST"],
+  "layers": [
+    {
+      "id": 0,
+      "href": "./layers/0",
+      "layerType": "3DObject",
+      "spatialReference": { "wkid": 4326, "latestWkid": 4326 },
+      "version": "00637b20-12af-44fa-bf64-5c4828a87928",
+      "name": "campus_buildings",
+      "alias": "",
+      "description": "",
+      "copyrightText": "",
+      "capabilities": ["View"],
+      "cachedDrawingInfo": { "color": false },
+      "drawingInfo": {
+        "renderer": {
+          "type": "simple",
+          "label": "",
+          "description": "",
+          "symbol": {
+            "type": "MeshSymbol3D",
+            "symbolLayers": [
+              {
+                "type": "Fill",
+                "material": { "transparency": 0, "color": [255, 255, 255] },
+                "outline": {
+                  "transparency": 0,
+                  "size": 2,
+                  "color": [255, 255, 255]
+                }
+              }
+            ]
+          }
+        }
+      },
+      "fields": [
+        { "name": "OID", "type": "esriFieldTypeOID", "alias": "OBJECTID" },
+        { "name": "name", "type": "esriFieldTypeString", "alias": "name" }
+      ],
+      "attributeStorageInfo": [
+        {
+          "name": "OID",
+          "key": "f_0",
+          "header": [{ "property": "count", "valueType": "UInt32" }],
+          "ordering": ["ObjectIds"],
+          "objectIds": { "valueType": "UInt32", "valuesPerElement": 1 }
+        },
+        {
+          "name": "name",
+          "key": "f_1",
+          "header": [
+            { "property": "count", "valueType": "UInt32" },
+            { "property": "attributeValuesByteCount", "valueType": "UInt32" }
+          ],
+          "ordering": ["attributeByteCounts", "attributeValues"],
+          "attributeByteCounts": {
+            "valueType": "UInt32",
+            "valuesPerElement": 1
+          },
+          "attributeValues": {
+            "valueType": "String",
+            "encoding": "UTF-8",
+            "valuesPerElement": 1
+          }
+        }
+      ],
+      "popupInfo": {
+        "fieldInfos": [
+          { "fieldName": "OID", "label": "OBJECTID", "visible": false },
+          { "fieldName": "name", "label": "name", "visible": true }
+        ],
+        "showAttachments": true,
+        "title": "{name}"
+      },
+      "store": {
+        "id": "f9372036-22e4-4d04-8d91-0897bd8f4902",
+        "profile": "meshpyramids",
+        "resourcePattern": [
+          "3dNodeIndexDocument",
+          "SharedResource",
+          "Geometry",
+          "Texture",
+          "Attributes"
+        ],
+        "rootNode": "./nodes/root",
+        "version": "1.7",
+        "extent": [
+          -88.97721278589863, 39.8416124225283, -88.9729366974668,
+          39.84406333938029
+        ],
+        "indexCRS": "http://www.opengis.net/def/crs/EPSG/0/4326",
+        "vertexCRS": "http://www.opengis.net/def/crs/EPSG/0/4326",
+        "normalReferenceFrame": "east-north-up",
+        "nidEncoding": "application/vnd.esri.i3s.json+gzip; version=1.7",
+        "featureEncoding": "application/vnd.esri.i3s.json+gzip; version=1.7",
+        "geometryEncoding": "application/octet-stream+gzip; version=1.7",
+        "textureEncoding": ["image/jpeg", "image/png", "image/vnd-ms.dds"],
+        "lodType": "MeshPyramid",
+        "lodModel": "node-switching",
+        "defaultGeometrySchema": {
+          "geometryType": "triangles",
+          "topology": "PerAttributeArray",
+          "header": [
+            { "property": "vertexCount", "type": "UInt32" },
+            { "property": "featureCount", "type": "UInt32" }
+          ],
+          "ordering": ["position", "normal", "uv0", "color", "region"],
+          "vertexAttributes": {
+            "position": { "valueType": "Float32", "valuesPerElement": 3 },
+            "normal": { "valueType": "Float32", "valuesPerElement": 3 },
+            "uv0": { "valueType": "Float32", "valuesPerElement": 2 },
+            "color": { "valueType": "UInt8", "valuesPerElement": 4 },
+            "region": { "valueType": "UInt16", "valuesPerElement": 4 }
+          },
+          "featureAttributeOrder": ["id", "faceRange"],
+          "featureAttributes": {
+            "id": { "valueType": "UInt64", "valuesPerElement": 1 },
+            "faceRange": { "valueType": "UInt32", "valuesPerElement": 2 }
+          }
+        }
+      },
+      "materialDefinitions": [
+        {
+          "alphaMode": "opaque",
+          "doubleSided": false,
+          "cullFace": "none",
+          "emissiveFactor": [0.0, 0.0, 0.0],
+          "pbrMetallicRoughness": {
+            "baseColorFactor": [1.0, 1.0, 1.0, 1.0],
+            "metallicFactor": 0.0,
+            "roughnessFactor": 1.0
+          }
+        }
+      ],
+      "textureSetDefinitions": [
+        {
+          "formats": [
+            { "name": "0", "format": "jpg" },
+            { "name": "0_0_1", "format": "dds" }
+          ],
+          "atlas": true
+        },
+        {
+          "formats": [
+            { "name": "0", "format": "png" },
+            { "name": "0_0_1", "format": "dds" }
+          ],
+          "atlas": true
+        },
+        {
+          "formats": [
+            { "name": "0_0_3", "format": "png" },
+            { "name": "0_0_4", "format": "dds" }
+          ],
+          "atlas": true
+        },
+        {
+          "formats": [
+            { "name": "0_0_6", "format": "png" },
+            { "name": "0_0_7", "format": "dds" }
+          ],
+          "atlas": true
+        },
+        {
+          "formats": [
+            { "name": "0_0_9", "format": "png" },
+            { "name": "0_0_10", "format": "dds" }
+          ],
+          "atlas": true
+        }
+      ],
+      "geometryDefinitions": [
+        {
+          "geometryBuffers": [
+            {
+              "offset": 8,
+              "position": {
+                "type": "Float32",
+                "component": 3,
+                "binding": "per-vertex"
+              },
+              "normal": {
+                "type": "Float32",
+                "component": 3,
+                "binding": "per-vertex"
+              },
+              "uv0": {
+                "type": "Float32",
+                "component": 2,
+                "binding": "per-vertex"
+              },
+              "color": {
+                "type": "UInt8",
+                "component": 4,
+                "binding": "per-vertex"
+              },
+              "uvRegion": {
+                "type": "UInt16",
+                "component": 4,
+                "binding": "per-vertex"
+              },
+              "featureId": {
+                "type": "UInt64",
+                "component": 1,
+                "binding": "per-feature"
+              },
+              "faceRange": {
+                "type": "UInt32",
+                "component": 2,
+                "binding": "per-feature"
+              }
+            }
+          ]
+        }
+      ],
+      "nodePages": {
+        "nodesPerPage": 64,
+        "rootIndex": 0,
+        "lodSelectionMetricType": "maxScreenThresholdSQ"
+      },
+      "statisticsInfo": [
+        { "key": "f_1", "name": "name", "href": "./statistics/f_1/0" }
+      ]
+    }
+  ]
+}
