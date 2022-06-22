@@ -14,6 +14,7 @@
         margin: 0;
         height: 100%;
         width: 100%;
+        background: rgb(0, 0, 0);
       }
     </style>
     <!-- <link rel="stylesheet" href="./main.css" /> -->
@@ -21,8 +22,9 @@
 
     <link
       rel="stylesheet"
-      href="https://js.arcgis.com/4.23/esri/themes/light/main.css"
+      href="https://js.arcgis.com/4.16/esri/themes/light/main.css"
     />
+    <!-- <link rel="stylesheet" href="http://139.196.174.214/arcgis_js_api/library/4.16/esri/css/main.css"/> -->
     <style>
       /* .non-transparent {
         position: absolute;
@@ -51,7 +53,8 @@
         border-radius: 4px;
       }
     </style>
-    <script src="https://js.arcgis.com/4.23/"></script>
+    <script src="https://js.arcgis.com/4.16/"></script>
+    <!-- <script src="http://139.196.174.214/arcgis_js_api/library/4.16/init.js"></script> -->
 
     <script>
       require([
@@ -59,7 +62,9 @@
         "esri/views/SceneView",
         "esri/layers/SceneLayer",
         "esri/layers/WebTileLayer",
-      ], (Map, SceneView, SceneLayer, WebTileLayer) => {
+        "esri/widgets/Slice",
+        "esri/widgets/Slice/SliceViewModel"
+      ], (Map, SceneView, SceneLayer, WebTileLayer, Slice,SliceViewModel) => {
         let skyKey = "0024544fd0017419d3d685513eccd06d";
         // 天地图
         let skyMap = {
@@ -74,11 +79,15 @@
             "http://t3.tianditu.com/DataServer?T=cva_w&tk=" +
             skyKey +
             "&x={col}&y={row}&l={level}",
+          streetMap:
+            "http://t4.tianditu.com/DataServer?T=vec_w&tk=" +
+            skyKey +
+            "&x={col}&y={row}&l={level}",
         };
 
         let tiledLayer = new WebTileLayer({
-          urlTemplate: skyMap.imgMap,
-          subDomains: ["t1", "t2", "t3", "t4", "t5", "t6", "t7", "t8", "t9"],
+          urlTemplate: skyMap.streetMap,
+          // subDomains: ["t1", "t2", "t3", "t4", "t5", "t6", "t7", "t8", "t9"],
         });
 
         let tiledLayer_poi = new WebTileLayer({
@@ -97,22 +106,44 @@
             navigationConstraint: {
               type: "none",
             },
+            // surfaceColor: "rgba(0,0,0,0)",
           },
           // ground: "world-elevation",
         });
+        debugger;
 
         // Create the SceneView
         const view = new SceneView({
           container: "viewDiv",
           map: map,
           camera: {
-            position: [121.339841, 31.196322, 707],
+            position: [121.804347, 31.147551, 707],
             tilt: 80,
             heading: 1,
           },
-          viewingMode: "local",
+          viewingMode: "global",
+          // alphaCompositingEnabled: true,
+          // environment: {
+          //   atmosphere: {
+          //     quality: "low",
+          //   },
+          //   weather: {
+          //     type: "sun",
+          //   },
+          //   lighting: {
+          //     type: "virtual",
+          //   },
+          //   background: {
+          //     type: "color",
+          //     color: [0, 0, 0, 1],
+          //   },
+          // },
           environment: {
-            atmosphereEnabled: false,
+            lighting: {
+              directShadowsEnabled: true,
+              date: new Date("Sun Mar 15 2019 6:00:00 GMT+0100 (CET)"),
+            },
+            // atmosphereEnabled: true,
             starsEnabled: false,
           },
         });
@@ -121,18 +152,18 @@
         const models = {
           AIRPORT_BUILDING:
             "https://readearth2014.vicp.cc:14497/geoserver/rest/services/Hosted/airport_building/SceneServer",
-          HQ_COVER:
-            "https://readearth2014.vicp.cc:14497/geoserver/rest/services/Hosted/hongqiao_cover/SceneServer",
-          HQ_WS:
-            "https://readearth2014.vicp.cc:14497/geoserver/rest/services/Hosted/hongqiao_ws/SceneServer",
-          HQ_YS:
-            "https://readearth2014.vicp.cc:14497/geoserver/rest/services/Hosted/hongqiao_ys/SceneServer",
-          PD_COVER:
-            "https://readearth2014.vicp.cc:14497/geoserver/rest/services/Hosted/pudong_cover/SceneServer",
-          PD_WS:
-            "https://readearth2014.vicp.cc:14497/geoserver/rest/services/Hosted/pudong_ws/SceneServer",
-          PD_YS:
-            "https://readearth2014.vicp.cc:14497/geoserver/rest/services/Hosted/pudong_ys/SceneServer",
+          // PD_INTEGRATION:
+          //   "https://readearth2014.vicp.cc:14497/geoserver/rest/services/Hosted/new_integratedLayer/SceneServer",
+          // PD_WATERLAYER:
+          //   "https://readearth2014.vicp.cc:14497/geoserver/rest/services/Hosted/new_waterLayer/SceneServer",
+          PD_COMMUNICATION:
+            "https://readearth2014.vicp.cc:14497/geoserver/rest/services/Hosted/new_communicationLayer/SceneServer",
+          // PD_COVER:
+          //   "https://readearth2014.vicp.cc:14497/geoserver/rest/services/Hosted/my_pipe_lid/SceneServer",
+          // PD_WS:
+          //   "https://readearth2014.vicp.cc:14497/geoserver/rest/services/Hosted/new_sewageLayer/SceneServer",
+          // PD_YS:
+          //   "https://readearth2014.vicp.cc:14497/geoserver/rest/services/Hosted/new_rainLayer/SceneServer",
         };
 
         // Create SceneLayer and add to the map
@@ -148,7 +179,17 @@
         for (let key in models) {
           createSceneLayer(key, models[key]);
         }
-        debugger;
+
+        // 切片
+        const slice = new Slice({
+          view: view,
+        });
+        slice.viewModel.excludeGroundSurface = true
+        debugger
+
+        view.ui.add(slice, {
+          position: "top-right",
+        });
 
         function createSceneLayer(id, url) {
           const sceneLayer = new SceneLayer({
@@ -157,9 +198,9 @@
             },
             popupEnabled: true,
             url: url,
-            popupTemplate: {
-              content: "test",
-            },
+            // popupTemplate: {
+            //   content: "test",
+            // },
           });
 
           map.add(sceneLayer);
@@ -167,37 +208,44 @@
 
           // 渲染模型
           // Create MeshSymbol3D for symbolizing SceneLayer
-          const symbol = {
-            type: "mesh-3d", // autocasts as new MeshSymbol3D()
-            symbolLayers: [
-              {
-                type: "fill", // autocasts as new FillSymbol3DLayer()
-                // If the value of material is not assigned, the default color will be grey
-                material: {
-                  // color: [244, 247, 134]
-                  // color: [230, 230, 230, 0.7],
-                  color:"#F5D5A9",
-                  colorMixMode: "tint"
-                },
-              },
-            ],
-          };
+          // const symbol = {
+          //   type: "mesh-3d", // autocasts as new MeshSymbol3D()
+          //   symbolLayers: [
+          //     {
+          //       type: "fill", // autocasts as new FillSymbol3DLayer()
+          //       // If the value of material is not assigned, the default color will be grey
+          //       material: {
+          //         // color: [244, 247, 134]
+          //         // color: [230, 230, 230, 0.7],
+          //         color: "#F5D5A9",
+          //         colorMixMode: "tint",
+          //       },
+          //     },
+          //   ],
+          // };
           // Add the renderer to sceneLayer
-          sceneLayer.renderer = {
-            type: "simple", // autocasts as new SimpleRenderer()
-            symbol: symbol,
-          };
+          // sceneLayer.renderer = {
+          //   type: "simple", // autocasts as new SimpleRenderer()
+          //   symbol: symbol,
+          // };
         }
 
         function setTransparent(type) {
           switch (type) {
             case "trans":
-              map.ground.opacity = 0.2;
-              map.ground.surfaceColor = "#000";
+              map.ground.opacity = 0.1;
+              // view.alphaCompositingEnabled = false
+              // view.environment.lighting.directShadowsEnabled = true
+              view.environment.lighting.date = new Date(
+                "Sun Mar 15 2019 6:00:00 GMT+0100 (CET)"
+              );
+              // map.ground.surfaceColor = [0,0,0,0]
+              view.environment.atmosphereEnabled = false;
               debugger;
               break;
             case "opaque":
               map.ground.opacity = 1;
+              view.environment.atmosphereEnabled = true;
               break;
           }
         }

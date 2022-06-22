@@ -1,0 +1,288 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <title>Analysis object | Sample | ArcGIS API for JavaScript 4.23</title>
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+
+      #menu {
+        padding: 0.8em;
+        max-width: 180px;
+      }
+    </style>
+    <link
+      rel="stylesheet"
+      href="https://js.arcgis.com/4.23/esri/themes/light/main.css"
+    />
+    <script src="https://js.arcgis.com/4.23/"></script>
+    <script
+      type="module"
+      src="https://js.arcgis.com/calcite-components/1.0.0-beta.79/calcite.esm.js"
+    ></script>
+    <script
+      nomodule=""
+      src="https://js.arcgis.com/calcite-components/1.0.0-beta.79/calcite.js"
+    ></script>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://js.arcgis.com/calcite-components/1.0.0-beta.79/calcite.css"
+    />
+    <script>
+      require([
+        "esri/geometry/SpatialReference",
+        "esri/core/reactiveUtils",
+        "esri/views/SceneView",
+        "esri/WebScene",
+        "esri/geometry/Point",
+        "esri/geometry/Polygon",
+        "esri/analysis/DirectLineMeasurementAnalysis",
+        "esri/widgets/DirectLineMeasurement3D",
+        "esri/analysis/AreaMeasurementAnalysis",
+        "esri/widgets/AreaMeasurement3D",
+        "esri/analysis/SliceAnalysis",
+        "esri/widgets/Slice",
+        "esri/analysis/LineOfSightAnalysis",
+        "esri/widgets/LineOfSight"
+      ], function (
+        SpatialReference,
+        reactiveUtils,
+        SceneView,
+        WebScene,
+        Point,
+        Polygon,
+        DirectLineMeasurementAnalysis,
+        DirectLineMeasurement3D,
+        AreaMeasurementAnalysis,
+        AreaMeasurement3D,
+        SliceAnalysis,
+        Slice,
+        LineOfSightAnalysis,
+        LineOfSight
+      ) {
+        // Load webscene and display it in a SceneView
+        const view = new SceneView({
+          container: "viewDiv",
+          map: new WebScene({
+            portalItem: {
+              id: "32d12af2671f4b1ebc614bdd79e2bf13"
+            }
+          }),
+          qualityProfile: "high"
+        });
+
+        // Add menu in the top right corner of the view
+        view.ui.add("menu", "bottom-left");
+
+        // To modify analysis objects we will temporarily store the corresponding widget in this variable.
+        let analysisWidget = null;
+
+        view.when(async () => {
+          // Create the analysis objects
+          const directLineMeasurementAnalysis =
+            createDirectLineMeasurementAnalysis();
+          const areaMeasurementAnalysis = createAreaMeasurementAnalysis();
+          const sliceAnalysis = createSliceAnalysis();
+          const lineOfSightAnalysis = createLineOfSightAnalysis();
+
+          // Wait for the view to load before adding analysis objects
+          await reactiveUtils.whenOnce(() => !view.updating);
+
+          // Add analysis object to the view to show them
+          view.analyses.addMany([
+            directLineMeasurementAnalysis,
+            areaMeasurementAnalysis,
+            sliceAnalysis,
+            lineOfSightAnalysis
+          ]);
+
+          // Configure buttons to interact with the analysis objects
+          const areaMeasurementAnalysisButton = setupAnalysisButton(
+            "areaMeasurementAnalysisButton",
+            () =>
+              new AreaMeasurement3D({ view, analysis: areaMeasurementAnalysis })
+          );
+
+          const directLineMeasurementAnalysisButton = setupAnalysisButton(
+            "directLineMeasurementAnalysisButton",
+            () =>
+              new DirectLineMeasurement3D({
+                view,
+                analysis: directLineMeasurementAnalysis
+              })
+          );
+
+          const lineOfSightAnalysisButton = setupAnalysisButton(
+            "lineOfSightAnalysisButton",
+            () => new LineOfSight({ view, analysis: lineOfSightAnalysis })
+          );
+
+          const sliceAnalysisButton = setupAnalysisButton(
+            "sliceAnalysisButton",
+            () => new Slice({ view, analysis: sliceAnalysis })
+          );
+
+          // Remove button is a bit special
+          document
+            .getElementById("removeWidgetButton")
+            .addEventListener("click", () => {
+              removeActiveWidget();
+            });
+
+          function setupAnalysisButton(elementId, widgetFactotry) {
+            const button = document.getElementById(elementId);
+
+            button.addEventListener("click", () => {
+              // remove current widget (if any)
+              removeActiveWidget();
+
+              // install a suitable widget in the `analysisWidget` variable
+              analysisWidget = widgetFactotry();
+
+              // highlight this button as the currently active one and add the remove widget button
+              button.appearance = "outline";
+              document.getElementById("removeWidgetButton").style.display =
+                "block";
+
+              // show the analysisWidget in the lower right corner
+              view.ui.add(analysisWidget, "bottom-right");
+            });
+            return button;
+          }
+
+          function removeActiveWidget() {
+            // remove the analysisWidget if one exists
+            if (analysisWidget) {
+              analysisWidget.destroy();
+              analysisWidget = null;
+            }
+
+            // hide remove button
+            document.getElementById("removeWidgetButton").style.display =
+              "none";
+
+            // reset appearance of the analysis buttons
+            areaMeasurementAnalysisButton.appearance = "solid";
+            directLineMeasurementAnalysisButton.appearance = "solid";
+            lineOfSightAnalysisButton.appearance = "solid";
+            sliceAnalysisButton.appearance = "solid";
+          }
+        });
+
+        function createDirectLineMeasurementAnalysis() {
+          return new DirectLineMeasurementAnalysis({
+            startPoint: newPoint(-8238827, 4971466, 3),
+            endPoint: newPoint(-8238819, 4971537, 3)
+          });
+        }
+
+        function createAreaMeasurementAnalysis() {
+          const roofPolygon = new Polygon({
+            rings: [
+              [
+                [-8238931, 4971381, 50],
+                [-8238926, 4971426, 50],
+                [-8238835, 4971415, 50],
+                [-8238841, 4971369, 50],
+                [-8238931, 4971381, 50]
+              ]
+            ],
+            spatialReference: SpatialReference.WebMercator
+          });
+
+          return new AreaMeasurementAnalysis({
+            geometry: roofPolygon
+          });
+        }
+
+        function createSliceAnalysis() {
+          return new SliceAnalysis({
+            shape: {
+              position: newPoint(-8238840, 4971700, 21),
+              tilt: 0,
+              width: 70,
+              height: 100,
+              heading: 278
+            }
+          });
+        }
+
+        function createLineOfSightAnalysis() {
+          return new LineOfSightAnalysis({
+            observer: { position: newPoint(-8238825, 4971538, 48) },
+            targets: [
+              { position: newPoint(-8238903, 4971649, 2) },
+              { position: newPoint(-8238866, 4971629, 19) },
+              { position: newPoint(-8238825, 4971880, 2) },
+              { position: newPoint(-8238791, 4971784, 2) }
+            ]
+          });
+        }
+
+        function newPoint(x, y, z) {
+          // convenience function to have all points in the same spatial reference
+          return new Point({
+            x,
+            y,
+            z,
+            spatialReference: SpatialReference.WebMercator
+          });
+        }
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="viewDiv">
+      <div id="menu" class="esri-widget">
+        <calcite-label>
+          Click one of the buttons below to open the corresponding analysis
+          widget and interact with the analysis.
+        </calcite-label>
+
+        <calcite-button
+          id="directLineMeasurementAnalysisButton"
+          icon-start="measure-line"
+          title="Interact with direct line measurement"
+        >
+        </calcite-button>
+        <calcite-button
+          id="areaMeasurementAnalysisButton"
+          icon-start="measure-area"
+          title="Interact with area measurement"
+        >
+        </calcite-button>
+        <calcite-button
+          id="sliceAnalysisButton"
+          icon-start="slice"
+          title="Interact with slice plane"
+        >
+        </calcite-button>
+        <calcite-button
+          id="lineOfSightAnalysisButton"
+          icon-start="line-of-sight"
+          title="Interact with line of sight analysis"
+        >
+        </calcite-button>
+        <calcite-label></calcite-label>
+        <calcite-button
+          id="removeWidgetButton"
+          title="Remove Widget"
+          style="display: none; width: 140px"
+          >Remove Widget
+        </calcite-button>
+      </div>
+    </div>
+  </body>
+</html>
